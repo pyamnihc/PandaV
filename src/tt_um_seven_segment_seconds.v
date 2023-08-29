@@ -28,7 +28,7 @@ module tt_um_seven_segment_seconds #( parameter MAX_COUNT = 64'h_ffff_ffff_ffff_
 
     // if external inputs are set then use that as compare count
     // otherwise use the hard coded MAX_COUNT
-    wire [63:0] compare = ui_in == 0 ? MAX_COUNT: {6'b0, ui_in[7:0], 10'b0};
+    wire [63:0] compare = ui_in == 0 ? MAX_COUNT: {46'b0, ui_in[7:0], 10'b0};
 
     always @(posedge clk) begin
         // if reset, set counter to 0
