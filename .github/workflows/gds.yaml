@@ -1,4 +1,3 @@
-runs-on: self-hosted
 name: gds
 
 on:
@@ -7,7 +6,7 @@ on:
 
 jobs:
   gds:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     steps:
       - name: checkout repo
         uses: actions/checkout@v3
@@ -19,7 +18,7 @@ jobs:
 
   gl_test:
     needs: gds
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     steps:
       - name: checkout repo
         uses: actions/checkout@v3
@@ -31,7 +30,7 @@ jobs:
     
   viewer:
     needs: gds
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     permissions:
       pages: write      # to deploy to Pages
       id-token: write   # to verify the deployment originates from an appropriate source
