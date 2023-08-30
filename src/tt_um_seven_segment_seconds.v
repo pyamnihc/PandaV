@@ -13,14 +13,14 @@ module tt_um_seven_segment_seconds #( parameter MAX_COUNT = 64'hffff_ffff_ffff_f
 
     wire reset = ! rst_n;
     wire [6:0] led_out;
-    assign uo_out[6:0] = led_out;
-    assign uo_out[7] = 1'b0;
-
+    // assign uo_out[6:0] = led_out;
+    // assign uo_out[7] = 1'b0;
+ 
     // use bidirectionals as outputs
     assign uio_oe = 8'b11111111;
 
     // put bottom 8 bits of second counter out on the bidirectional gpio
-    assign uio_out = second_counter[7:0];
+    // assign uio_out = second_counter[7:0];   
 
     // external clock is 10MHz, so need 24 bit counter
     reg [63:0] second_counter;
