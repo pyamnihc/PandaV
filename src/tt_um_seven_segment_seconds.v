@@ -70,8 +70,8 @@ module tt_um_seven_segment_seconds #( parameter MAX_COUNT = 64'hffff_ffff_ffff_f
     wire [PW-1:0] ph;
     assign ph = {3{uio_in}};
     wire [OW-1:0] x_o, y_o;
-    assign x_o = {2{uio_out}};
-    assign y_o = {2{uo_out}};
+    assign x_o = uio_out;
+    assign y_o = uo_out;
 
     cordic_nco cordic_nco0 (
 		// {{{
