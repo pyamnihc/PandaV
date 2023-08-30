@@ -57,4 +57,32 @@ module tt_um_seven_segment_seconds #( parameter MAX_COUNT = 64'hffff_ffff_ffff_f
     // instantiate segment display
     seg7 seg7(.counter(digit), .segments(led_out));
 
+    localparam IW=16;	// The number of bits in our inputs
+    localparam OW=16;	// The number of output bits to produce
+    localparam NSTAGES=20;
+                        // XTRA= 4,// Extra bits for internal precision
+    localparam WW=20;	// Our working bit-width
+    localparam PW=24;	// Bits in our phase variables
+    
+    wire [IW-1:0] x_in, y_in;
+    assign x_in = {2{uio_in}};
+    assign y_in = {2{ui_in}};
+    wire [PW-1:0] ph;
+    assign ph = {3{uio_in}};
+    wire [OW-1:0] x_o, y_o;
+    assign x_o = {2{uio_out}};
+    assign y_o = {2{uo_out}};
+
+    cordic_nco #(   .IW(IW), .OW(OW),
+                    .NSTAGES(NSTAGES), .WW(WW), .PW(PW)
+    ) cordic_nco0 (
+		// {{{
+	.i_clk(clk), .i_reset(!rst_n), .i_ce(ena),
+	.i_xval(x_in), .i_yval(y_in),
+	.i_phase(ph),
+	.o_xval(x_o), .o_yval(y_o)
+		// }}}
+	);
+
+
 endmodule
