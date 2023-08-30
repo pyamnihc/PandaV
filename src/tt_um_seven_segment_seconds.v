@@ -73,9 +73,7 @@ module tt_um_seven_segment_seconds #( parameter MAX_COUNT = 64'hffff_ffff_ffff_f
     assign x_o = {2{uio_out}};
     assign y_o = {2{uo_out}};
 
-    cordic_nco #(   .IW(IW), .OW(OW),
-                    .NSTAGES(NSTAGES), .WW(WW), .PW(PW)
-    ) cordic_nco0 (
+    cordic_nco cordic_nco0 (
 		// {{{
 	.i_clk(clk), .i_reset(!rst_n), .i_ce(ena),
 	.i_xval(x_in), .i_yval(y_in),
