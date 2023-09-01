@@ -6,10 +6,10 @@ project:
 # If using an HDL, set wokwi_id as 0 and uncomment and list your source files here. 
 # Source files must be in ./src and you must list each source file separately
   source_files:        
-    - tt_spi_register_map.v
+    - tt_um_spi_register_map.v
     - spi_slave_mem_interface.v
     - register_map.v
-  top_module:  "tt_spi_register_map"      # put the name of your top module here, make it unique by prepending your github username
+  top_module:  "tt_um_spi_register_map"      # put the name of your top module here, make it unique by prepending your github username
 
 # How many tiles your design occupies? A single tile is about 167x108 uM.
   tiles: "1x1"    # Valid values: 1x1, 1x2, 2x2, 4x2 or 8x2

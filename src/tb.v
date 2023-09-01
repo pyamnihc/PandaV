@@ -67,7 +67,7 @@ module tb();
     wire [7:0] uio_out;
     wire [7:0] uio_oe;
 
-    tt_spi_register_map tt_spi_register_map (
+    tt_um_spi_register_map tt_um_spi_register_map (
     // include power ports for the Gate Level test
     `ifdef GL_TEST
         .VPWR( 1'b1),

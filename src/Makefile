@@ -9,7 +9,7 @@ TOPLEVEL_LANG ?= verilog
 ifneq ($(GATES),yes)
 
 # this is the only part you should need to modify:
-VERILOG_SOURCES += $(PWD)/tb.v $(PWD)/tt_spi_register_map.v $(PWD)/spi_slave_mem_interface.v $(PWD)/register_map.v
+VERILOG_SOURCES += $(PWD)/tb.v $(PWD)/tt_um_spi_register_map.v $(PWD)/spi_slave_mem_interface.v $(PWD)/register_map.v
 
 else
 
