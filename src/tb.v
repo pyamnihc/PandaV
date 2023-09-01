@@ -21,6 +21,11 @@ module tb();
     localparam MAX_CLOCKS = 1048576;
     localparam TEST_COUNT = 8;
 
+    localparam SCK_PERIOD = 62500/4;
+    localparam WS_PERIOD = 2*AUDIO_DW*SCK_PERIOD;
+    localparam MAX_SAMPLES = 32;
+    localparam AUDIO_DW = 8;
+    
     reg clk, rst_n;
     reg [DATA_WIDTH-1:0] rand_addr_arr [TEST_COUNT-1:0];
     reg [DATA_WIDTH-1:0] rand_val_arr [NUM_CONFIG_REG+NUM_STATUS_REG-1:0];
@@ -29,15 +34,14 @@ module tb();
     integer count_i;
     reg fail_flag;
 
-    assign uio_in[5] = 0;
-    assign uio_in[4] = 1;
-    
     reg finish;
 
     initial begin
         finish = 0;
         clk = 0;
         rst_n = 1;
+        sck = 0;
+        ws = 0;
         #(10*CLK_PERIOD)    init_design();
                             init_spi();
                             prbs_init();
@@ -50,6 +54,42 @@ module tb();
         // #(10*CLK_PERIOD)    $finish;
     end
 
+    reg [AUDIO_DW-1:0] sd_buffer, recv_l_data, recv_r_data;
+    initial begin 
+        sd_buffer = 0;
+    end
+    always @(posedge sck) begin
+        sd_buffer <= {sd_buffer[AUDIO_DW-2:0], sd};
+    end
+    
+    reg wsd[1:0];
+    always @(posedge sck) begin
+        wsd[0] <= ws;
+        wsd[1] <= wsd[0];
+    end
+    
+    wire wsp;
+    assign wsp = wsd[0] ^ wsd[1];
+
+    reg [31:0] sample_count;
+    initial begin
+        sample_count = 0;
+    end
+    always @(negedge sck) begin
+        if (wsp == 1'b1) begin
+            sample_count <= sample_count + 1;
+            if (ws == 1'b1) begin
+                recv_l_data <= sd_buffer;
+                $display("recv: 0x%0h", recv_l_data);
+
+            end else if (ws == 1'b0) begin
+                recv_r_data <= sd_buffer;
+                $display("recv: 0x%0h", recv_r_data);
+            end
+        end else if (sample_count >= MAX_SAMPLES) finish = 1;
+    end
+
+
     reg [63:0] clk_count;
     initial clk_count = 0;
     always @(posedge clk) begin
@@ -57,9 +97,14 @@ module tb();
     end
     
     always #(CLK_PERIOD/2) clk = !clk;
+    always #(SCK_PERIOD/2) sck = !sck;
+    always #(WS_PERIOD/2) ws = !ws;
 
     reg sck_i, cs_ni;
     wire sdi_i, sdo_o;
+    reg sck;
+    reg ws;
+    wire sd;
 
     // wire up the inputs and outputs
     // reg  clk;
@@ -98,6 +143,9 @@ module tb();
     assign uio_in[1] = sdi_i;
     assign sdo_o = uio_out[2];
     assign uio_in[3] = cs_ni;
+    assign uio_in[4] = sck;
+    assign uio_in[5] = ws;
+    assign sd = uio_out[6];
     
     assign uio_oe = 8'b1100_0100;
 

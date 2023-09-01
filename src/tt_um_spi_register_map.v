@@ -46,9 +46,8 @@ module tt_um_spi_register_map (
     endgenerate
 
     assign uio_out[7] = ^prbs_frame;
-    assign uio_out[6] = |config_bus_o;
-    assign status_bus_i[DATA_WIDTH*(NUM_STATUS_REG/2)-1:0] = {(DATA_WIDTH*(NUM_STATUS_REG/2)){uio_in[5]}};
-    assign status_bus_i[DATA_WIDTH*NUM_STATUS_REG-1:DATA_WIDTH*(NUM_STATUS_REG/2)] = {(DATA_WIDTH*(NUM_STATUS_REG/2)){uio_in[4]}};
+    assign status_bus_i[DATA_WIDTH*(NUM_STATUS_REG/2)-1:0] = {(DATA_WIDTH*(NUM_STATUS_REG/2)){1'b0}};
+    assign status_bus_i[DATA_WIDTH*NUM_STATUS_REG-1:DATA_WIDTH*(NUM_STATUS_REG/2)] = {(DATA_WIDTH*(NUM_STATUS_REG/2)){1'b1}};
 
     wire [ADDR_WIDTH-1:0] spi_addr;
     wire [DATA_WIDTH-1:0] spi_write_data, spi_read_data;
@@ -101,6 +100,51 @@ module tt_um_spi_register_map (
         .load_prbs_i(load_prbs),
         .freeze_i(freeze_prbs),
         .prbs_frame_o(prbs_frame)
+    );
+
+    localparam AUDIO_DW = 8;
+
+    wire sck;
+    assign sck = uio_in[4];
+    wire ws;
+    assign ws = uio_in[5];
+    wire sd;
+    assign uio_out[6] = sd;
+
+    reg [AUDIO_DW-1:0] l_data, r_data; 
+    wire l_load_en, r_load_en;
+    
+    reg l_load_reg [1:0];
+    reg r_load_reg [1:0];
+    always @(posedge clk) begin
+        if (!rst_n) begin
+            l_load_reg[0] <= 'b0; l_load_reg[1] = 'b0;
+            r_load_reg[0] <= 'b0; r_load_reg[1] = 'b0;
+        end else begin
+            l_load_reg[0] <= l_load_en; l_load_reg[1] <= l_load_reg[0];
+            r_load_reg[0] <= r_load_en; r_load_reg[1] <= r_load_reg[0];
+        end
+    end
+    wire l_load_pulse;
+    assign l_load_pulse = l_load_reg[0] && !l_load_reg[1];
+    wire r_load_pulse;
+    assign r_load_pulse = r_load_reg[0] && !r_load_reg[1];
+
+    always @(posedge clk) begin
+        if (l_load_pulse) l_data <= prbs_frame;
+        if (r_load_pulse) r_data <= prbs_frame;
+    end
+
+    i2s_tx #(
+        .AUDIO_DW(AUDIO_DW)
+        ) UUT_i2s_tx (
+        .sck_i(sck),
+        .ws_i(ws),
+        .sd_o(sd),
+        .l_data_i(l_data),
+        .r_data_i(r_data),
+        .l_load_en_o(l_load_en),
+        .r_load_en_o(r_load_en)
     );
 
 endmodule
