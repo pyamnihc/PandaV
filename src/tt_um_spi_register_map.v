@@ -14,8 +14,8 @@ module tt_um_spi_register_map (
     parameter INST_WIDTH = 1;
     parameter ADDR_WIDTH = 7;
     parameter DATA_WIDTH = 8;
-    parameter NUM_CONFIG_REG = 96;
-    parameter NUM_STATUS_REG = 32;
+    parameter NUM_CONFIG_REG = 12;
+    parameter NUM_STATUS_REG = 4;
 
     wire clk_i;
     assign clk_i = clk;
