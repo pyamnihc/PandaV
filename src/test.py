@@ -16,4 +16,4 @@ async def test_spi_register_map(dut):
     dut.ui_in.value = 1
     await ClockCycles(dut.clk, 10)
     dut.rst_n.value = 1
-    await ClockCycles(dut.clk, 1024)
+    await ClockCycles(dut.clk, 1048576)

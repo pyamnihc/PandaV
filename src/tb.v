@@ -10,6 +10,7 @@ module tb();
 
     localparam INST_WIDTH = 1;
     localparam ADDR_WIDTH = 7;
+    localparam USED_ADDR_WIDTH = 4;
     localparam DATA_WIDTH = 8;
     localparam NUM_CONFIG_REG = 96;
     localparam NUM_STATUS_REG = 32;
@@ -157,7 +158,7 @@ module tb();
             fail_flag = 0;
             // immediate write and read
             for (count_i = 0; count_i < TEST_COUNT; count_i = count_i + 1) begin
-                rand_addr = {$random} % (1 << ADDR_WIDTH);
+                rand_addr = {$random} % (1 << USED_ADDR_WIDTH);
                 rand_val = {$random} % (1 << DATA_WIDTH);
 
                 if (rand_addr < NUM_CONFIG_REG) begin
@@ -188,7 +189,7 @@ module tb();
             fail_flag = 0;
             // all write then all read
             for (count_i = 0; count_i < TEST_COUNT; count_i = count_i + 1) begin
-                rand_addr = {$random} % (1 << ADDR_WIDTH);
+                rand_addr = {$random} % (1 << USED_ADDR_WIDTH);
                 rand_val = {$random} % (1 << DATA_WIDTH);
 
                 if (rand_addr < NUM_CONFIG_REG) begin
