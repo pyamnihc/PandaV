@@ -30,6 +30,11 @@ module tt_um_spi_register_map (
     wire cs_ni;
     assign cs_ni = uio_in[3];
     
+    assign uio_out[0] = 1'b1;
+    assign uio_out[1] = 1'b1;
+    assign uio_out[3] = 1'b1;
+    assign uio_out[4] = 1'b1;
+    assign uio_out[5] = 1'b1;
     assign uio_oe = 8'b1100_0100;
     assign uo_out = 8'hff;
 
