@@ -64,16 +64,20 @@ module register_map #(
 
     assign read_data_o = read_data_reg;
     
+    always @(posedge clk_i) begin
+        if (!rstn_n) begin
+            register_map_mem[0] <= 8'hCC;
+        end else if ((addr_i == 0) && (addr_i < NUM_CONFIG_REG)) begin
+            if (write_en_i) register_map_mem[0] <= write_data_reg;
+        end
+    end
+    
     generate 
-        for (i = 0; i < NUM_CONFIG_REG; i = i + 1) begin
+        for (i = 1; i < NUM_CONFIG_REG; i = i + 1) begin
             always @(posedge clk_i) begin
                 if (!rstn_n) begin
-                    if (i == 0) begin
-                        register_map_mem[i] <= 8'hCC;
-                    end else begin
-                        register_map_mem[i] <= 'b0;
-                    end
-                end else if ((i == addr_i) && (addr_i < NUM_CONFIG_REG)) begin
+                    register_map_mem[i] <= 'b0;
+                end else if ((addr_i == i) && (addr_i < NUM_CONFIG_REG)) begin
                     if (write_en_i) register_map_mem[i] <= write_data_reg;
                 end
             end
