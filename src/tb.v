@@ -18,7 +18,7 @@ module tb();
     localparam SPI_FRAME_WIDTH = INST_WIDTH+ADDR_WIDTH+DATA_WIDTH;
     localparam CLK_PERIOD = 100;
     localparam SPI_CLK_PERIOD = 1000;
-    localparam MAX_CLOCK = 1048576;
+    localparam MAX_CLOCKS = 1048576;
     localparam TEST_COUNT = 8;
 
     reg clk, rst_n;
@@ -40,6 +40,7 @@ module tb();
         rst_n = 1;
         #(10*CLK_PERIOD)    init_design();
                             init_spi();
+                            prbs_init();
         spi_read(0);
         $display("regmap reset val 0x%0h", spi_read_data);
         test_immediate_write_read();
@@ -112,6 +113,8 @@ module tb();
         begin
             #(10*CLK_PERIOD)    cs_ni = 1;
                                 sck_i = 0;
+            #(10*CLK_PERIOD) spi_write(0, 8'h00);
+            #(10*CLK_PERIOD) spi_write(0, 8'hff);
         end
     endtask
     
@@ -157,12 +160,21 @@ module tb();
         end
     endtask
 
+    task prbs_init();
+        begin
+            #(10*CLK_PERIOD) spi_write(1, 8'hff);
+            #(10*CLK_PERIOD) spi_write(2, 8'hff);
+        end
+    endtask
+
     task test_immediate_write_read();
         begin
             fail_flag = 0;
             // immediate write and read
             for (count_i = 0; count_i < TEST_COUNT; count_i = count_i + 1) begin
                 rand_addr = {$random} % (1 << USED_ADDR_WIDTH);
+                rand_addr = rand_addr | 1;
+                rand_val = {$random} % (1 << DATA_WIDTH);
                 rand_val = {$random} % (1 << DATA_WIDTH);
 
                 if (rand_addr < NUM_CONFIG_REG) begin
@@ -194,6 +206,7 @@ module tb();
             // all write then all read
             for (count_i = 0; count_i < TEST_COUNT; count_i = count_i + 1) begin
                 rand_addr = {$random} % (1 << USED_ADDR_WIDTH);
+                rand_addr = rand_addr | 1;
                 rand_val = {$random} % (1 << DATA_WIDTH);
 
                 if (rand_addr < NUM_CONFIG_REG) begin
