@@ -66,6 +66,7 @@ module tb();
     // reg  rst_n;
     reg  ena;
     wire  [7:0] ui_in;
+    assign ui_in = 8'hff;
     wire  [7:0] uio_in;
 
     wire [6:0] segments = uo_out[6:0];
@@ -160,10 +161,17 @@ module tb();
         end
     endtask
 
+    reg [31:0] prbs_sample_reg;
     task prbs_init();
         begin
             #(10*CLK_PERIOD) spi_write(1, 8'hff);
+            #(10*CLK_PERIOD) spi_write(2, 8'h7f);
             #(10*CLK_PERIOD) spi_write(2, 8'hff);
+            prbs_sample_reg = 0;
+            repeat(32) begin
+                @(posedge clk) prbs_sample_reg = {prbs_sample_reg[30:0], uio_out[7]};
+            end
+            $display("prbs sample: %0b", prbs_sample_reg);
         end
     endtask
 

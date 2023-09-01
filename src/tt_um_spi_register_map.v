@@ -45,7 +45,7 @@ module tt_um_spi_register_map (
         end
     endgenerate
 
-    assign uio_out[7] = prbs_frame[0];
+    assign uio_out[7] = ^prbs_frame;
     assign uio_out[6] = |config_bus_o;
     assign status_bus_i[DATA_WIDTH*(NUM_STATUS_REG/2)-1:0] = {(DATA_WIDTH*(NUM_STATUS_REG/2)){uio_in[5]}};
     assign status_bus_i[DATA_WIDTH*NUM_STATUS_REG-1:DATA_WIDTH*(NUM_STATUS_REG/2)] = {(DATA_WIDTH*(NUM_STATUS_REG/2)){uio_in[4]}};
