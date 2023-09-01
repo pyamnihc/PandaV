@@ -3,7 +3,7 @@
 
 module tb();
     initial begin
-        $dumpfile("test.vcd");
+        $dumpfile("tb.vcd");
         $dumpvars(0,tb);
         #1;
     end

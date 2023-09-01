@@ -31,6 +31,7 @@ module tt_um_spi_register_map (
     assign cs_ni = uio_in[3];
     
     assign uio_oe = 8'b1100_0100;
+    assign uo_out = 8'hff;
 
     wire [DATA_WIDTH*NUM_CONFIG_REG-1:0] config_bus_o;
     wire [DATA_WIDTH*NUM_STATUS_REG-1:0] status_bus_i;

@@ -14,8 +14,6 @@ module register_map #(
     output [DATA_WIDTH*NUM_CONFIG_REG-1:0] config_bus_o,
     input [DATA_WIDTH*NUM_STATUS_REG-1:0] status_bus_i
 );
-    
-    localparam MEM_COUNT = NUM_CONFIG_REG + NUM_CONFIG_REG;
 
     // packed to unpacked conversion
     reg [DATA_WIDTH-1:0] register_map_mem [NUM_CONFIG_REG-1:0];
