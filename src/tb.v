@@ -31,8 +31,11 @@ module tb();
 
     assign uio_in[5] = 0;
     assign uio_in[4] = 1;
+    
+    reg finish;
 
     initial begin
+        finish = 0;
         clk = 0;
         rst_n = 1;
         #(10*CLK_PERIOD)    init_design();
@@ -42,7 +45,8 @@ module tb();
         test_immediate_write_read();
         test_all_write_then_all_read();
 
-        #(10*CLK_PERIOD)    $finish;
+        finish = 1;
+        // #(10*CLK_PERIOD)    $finish;
     end
 
     reg [63:0] clk_count;
