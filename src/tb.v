@@ -22,7 +22,7 @@ module tb();
 
     reg clk, rst_n;
     reg [DATA_WIDTH-1:0] rand_addr_arr [TEST_COUNT-1:0];
-    reg [DATA_WIDTH-1:0] rand_val_arr [NUM_CONFIG_REG*NUM_STATUS_REG-1:0];
+    reg [DATA_WIDTH-1:0] rand_val_arr [NUM_CONFIG_REG+NUM_STATUS_REG-1:0];
     reg [ADDR_WIDTH-1:0] rand_addr;
     reg [DATA_WIDTH-1:0] rand_val;
     integer count_i;

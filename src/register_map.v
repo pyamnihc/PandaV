@@ -33,7 +33,7 @@ module register_map #(
         end
     endgenerate
 
-    wire [DATA_WIDTH*NUM_CONFIG_REG*NUM_STATUS_REG-1:0] csr_read_bus;
+    wire [DATA_WIDTH*(NUM_CONFIG_REG+NUM_STATUS_REG)-1:0] csr_read_bus;
     assign csr_read_bus = {status_bus_i, config_bus_o};
     
     wire [DATA_WIDTH-1:0] csr_read_arr [NUM_CONFIG_REG+NUM_STATUS_REG-1:0];

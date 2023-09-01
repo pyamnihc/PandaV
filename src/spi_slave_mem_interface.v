@@ -44,8 +44,8 @@ always @(posedge sck_i or posedge cs_ni) begin
         read_flag <= 'b0;
         write_flag <= 'b0;
     end else if (bit_count < INST_WIDTH) begin
-        read_flag = sdi_i;
-        write_flag = !sdi_i;
+        read_flag <= sdi_i;
+        write_flag <= !sdi_i;
     end
 end
 
