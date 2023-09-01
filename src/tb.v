@@ -164,6 +164,7 @@ module tb();
     reg [31:0] prbs_sample_reg;
     task prbs_init();
         begin
+            #(10*CLK_PERIOD) spi_write(3, 8'h00);
             #(10*CLK_PERIOD) spi_write(1, 8'hff);
             #(10*CLK_PERIOD) spi_write(2, 8'h7f);
             #(10*CLK_PERIOD) spi_write(2, 8'hff);
