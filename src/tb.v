@@ -12,8 +12,8 @@ module tb();
     localparam ADDR_WIDTH = 7;
     localparam USED_ADDR_WIDTH = 4;
     localparam DATA_WIDTH = 8;
-    localparam NUM_CONFIG_REG = 96;
-    localparam NUM_STATUS_REG = 32;
+    localparam NUM_CONFIG_REG = 12;
+    localparam NUM_STATUS_REG = 4;
 
     localparam SPI_FRAME_WIDTH = INST_WIDTH+ADDR_WIDTH+DATA_WIDTH;
     localparam CLK_PERIOD = 100;
@@ -166,7 +166,7 @@ module tb();
                 end else begin
                     if (rand_addr < NUM_CONFIG_REG + NUM_STATUS_REG/2) rand_val = 8'h00;
                     else if ((rand_addr >= NUM_CONFIG_REG + NUM_STATUS_REG/2) &&
-                                (rand_addr < NUM_CONFIG_REG+NUM_STATUS_REG)) rand_val = 8'hff;
+                                (rand_addr < NUM_CONFIG_REG + NUM_STATUS_REG)) rand_val = 8'hff;
                     else rand_val = 8'bXXXX_XXXX;
                 end
 
@@ -197,7 +197,7 @@ module tb();
                 end else begin
                     if (rand_addr < NUM_CONFIG_REG + NUM_STATUS_REG/2) rand_val = 8'h00;
                     else if ((rand_addr >= NUM_CONFIG_REG + NUM_STATUS_REG/2) &&
-                                (rand_addr < NUM_CONFIG_REG+NUM_STATUS_REG)) rand_val = 8'hff;
+                                (rand_addr < NUM_CONFIG_REG + NUM_STATUS_REG)) rand_val = 8'hff;
                     else rand_val = 8'bXXXX_XXXX;
                 end
                 rand_addr_arr[count_i] = rand_addr;
