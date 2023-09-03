@@ -67,7 +67,7 @@ module tt_um_ks_pyamnihc (
     assign uo_out = 8'hff;
 
     // prbs tx
-    assign uio_out[7] = prbs_7;
+    assign uio_out[7] = prbs_15;
     
     // register map, packed to unpacked
     wire [SPI_DATA_WIDTH*SPI_NUM_CONFIG_REG-1:0] config_bus_o;
@@ -88,8 +88,8 @@ module tt_um_ks_pyamnihc (
         end
     endgenerate
 
-    assign status_bus_i[SPI_DATA_WIDTH*(SPI_NUM_STATUS_REG/2)-1:0] = {(SPI_DATA_WIDTH*(SPI_NUM_STATUS_REG/2)){1'b0}};
-    assign status_bus_i[SPI_DATA_WIDTH*SPI_NUM_STATUS_REG-1:SPI_DATA_WIDTH*(SPI_NUM_STATUS_REG/2)] = {(SPI_DATA_WIDTH*(SPI_NUM_STATUS_REG/2)){1'b1}};
+    assign status_arr[0] = ui_in;
+    assign status_arr[1] = ~ui_in;
 
     wire [SPI_ADDR_WIDTH-1:0] spi_addr;
     wire [SPI_DATA_WIDTH-1:0] spi_write_data, spi_read_data;
@@ -127,13 +127,13 @@ module tt_um_ks_pyamnihc (
     );
     
     wire rst_n_prbs_15;
-    assign rst_n_prbs_15 = config_arr[0][0];
+    assign rst_n_prbs_15 = config_arr[0][0] && !ui_in[0];
     wire [14:0] lfsr_init_15;
     assign lfsr_init_15 = {config_arr[3][6:0], config_arr[2][7:0]};
     wire load_prbs_15;
-    assign load_prbs_15 = config_arr[3][7];
+    assign load_prbs_15 = config_arr[3][7] || ui_in[1];
     wire freeze_prbs_15;
-    assign freeze_prbs_15 = config_arr[1][0];
+    assign freeze_prbs_15 = config_arr[1][0] || ui_in[2];
     wire prbs_15;
     wire [14:0] prbs_frame_15;
 
@@ -148,13 +148,13 @@ module tt_um_ks_pyamnihc (
     );
 
     wire rst_n_prbs_7;
-    assign rst_n_prbs_7 = config_arr[0][1];
+    assign rst_n_prbs_7 = config_arr[0][1] && !ui_in[0];
     wire [6:0] lfsr_init_7;
     assign lfsr_init_7 = config_arr[4][6:0];
     wire load_prbs_7;
-    assign load_prbs_7 = config_arr[4][7];
+    assign load_prbs_7 = config_arr[4][7] || ui_in[1];
     wire freeze_prbs_7;
-    assign freeze_prbs_7 = config_arr[1][1];
+    assign freeze_prbs_7 = config_arr[1][1] || ui_in[3];
     wire prbs_7;
     wire [6:0] prbs_frame_7;
 
@@ -168,7 +168,7 @@ module tt_um_ks_pyamnihc (
         .prbs_frame_o(prbs_frame_7)
     );
     
-    wire i2s_noise_sel = config_arr[1][3];
+    wire i2s_noise_sel = config_arr[1][3] || ui_in[4];
     wire [I2S_AUDIO_DW-1:0] l_data, r_data; 
     assign l_data = i2s_noise_sel ? prbs_frame_15[I2S_AUDIO_DW-1:0] : ks_sample;
     assign r_data = i2s_noise_sel ? {1'b0, prbs_frame_7} : ks_sample;
@@ -210,11 +210,11 @@ module tt_um_ks_pyamnihc (
     );
 
     wire rst_n_ks_string;
-    assign rst_n_ks_string = config_arr[0][2];
+    assign rst_n_ks_string = config_arr[0][2] && ui_in[5];
     wire ks_freeze;
     assign ks_freeze = config_arr[1][2];
     wire pluck;
-    assign pluck = config_arr[5][0];
+    assign pluck = config_arr[5][0] && ui_in[6];
     wire round_en;
     assign round_en = config_arr[5][1];
     wire alt_pattern_prbs_n;
