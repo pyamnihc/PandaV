@@ -28,16 +28,18 @@ wire [DATA_WIDTH-1:0] period_idx;
 assign period_idx = period_i - 8'h01;
 
 // pluck detect
-reg pluck_reg;
+reg pluck_reg_1, pluck_reg_2;
 always @(posedge clk_i) begin
     if (!rst_n) begin
-        pluck_reg <= 'b0;
+        pluck_reg_1 <= 'b0;
+        pluck_reg_2 <= 'b0;
     end else begin
-        pluck_reg <= pluck_i;
+        pluck_reg_1 <= pluck_i;
+        pluck_reg_1 <= pluck_reg_2;
     end
 end
 wire pluck_pulse;
-assign pluck_pulse = !pluck_reg && pluck_i;
+assign pluck_pulse = !pluck_reg_2 && pluck_reg_1;
 
 // noise burst capture
 reg signed [EXTENDED_WIDTH+FRAC_BITS-1:0] noise_reg;
@@ -180,7 +182,6 @@ assign ks_sample_loop_o = fine_tune_en_i ? ks_sample_ft : ks_sample;
 assign ks_sample_o = ks_sample_loop_o;
 
 // wavetable
-reg [$clog2(MAX_LENGTH)-1:0] length_count_reg;
 reg [DATA_WIDTH-1:0] string_reg [MAX_LENGTH-1:0];
 
 always @(posedge clk_i) begin
@@ -195,7 +196,7 @@ end
 
 genvar i;
 generate 
-    for (i = 1; i < MAX_LENGTH-1; i = i + 1) begin
+    for (i = 1; i < MAX_LENGTH; i = i + 1) begin
         always @(posedge clk_i) begin
             if (!rst_n) begin
                 string_reg[i] <= 'b0;

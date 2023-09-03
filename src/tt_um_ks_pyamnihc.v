@@ -28,23 +28,16 @@ module tt_um_ks_pyamnihc (
     localparam KS_FRAC_BITS = 4;
 
     // clock dividers
-    reg clk_2, clk_4, clk_8, clk_16;
-    always @(posedge clk or negedge rst_n) begin
-        if (!rst_n) clk_2 <= 'b0;
-        else clk_2 <= !clk_2;
+    reg [3:0] clk_div_counter;
+    wire clk_2, clk_4, clk_8, clk_16;
+    always @(posedge clk) begin
+        if (!rst_n) clk_div_counter <= 'b0;
+        else clk_div_counter <= clk_div_counter + 1;
     end
-    always @(posedge clk_2 or negedge rst_n) begin
-        if (!rst_n) clk_4 <= 'b0;
-        else clk_4 <= !clk_4;
-    end
-    always @(posedge clk_4 or negedge rst_n) begin
-        if (!rst_n) clk_8 <= 'b0;
-        else clk_8 <= !clk_8;
-    end
-    always @(posedge clk_8 or negedge rst_n) begin
-        if (!rst_n) clk_16 <= 'b0;
-        else clk_16 <= !clk_16;
-    end
+    assign clk_2 = clk_div_counter[0];
+    assign clk_4 = clk_div_counter[1];
+    assign clk_8 = clk_div_counter[2];
+    assign clk_16 = clk_div_counter[3];
 
     // SPI register map
     wire sck_i;
@@ -164,7 +157,7 @@ module tt_um_ks_pyamnihc (
 
     prbs7 prbs7_0 (
         .clk_i(clk_16),
-        .rst_ni(rst_n),
+        .rst_ni(rst_n && rst_n_prbs_7),
         .lfsr_init_i(lfsr_init_7),
         .load_prbs_i(load_prbs_7),
         .freeze_i(freeze_prbs_7),
@@ -181,8 +174,8 @@ module tt_um_ks_pyamnihc (
     reg r_load_reg [1:0];
     always @(posedge clk) begin
         if (!rst_n) begin
-            l_load_reg[0] <= 'b0; l_load_reg[1] = 'b0;
-            r_load_reg[0] <= 'b0; r_load_reg[1] = 'b0;
+            l_load_reg[0] <= 'b0; l_load_reg[1] <= 'b0;
+            r_load_reg[0] <= 'b0; r_load_reg[1] <= 'b0;
         end else begin
             l_load_reg[0] <= l_load_en; l_load_reg[1] <= l_load_reg[0];
             r_load_reg[0] <= r_load_en; r_load_reg[1] <= r_load_reg[0];
