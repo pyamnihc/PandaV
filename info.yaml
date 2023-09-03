@@ -34,7 +34,7 @@ documentation:
 # Longer description of how the project works. You can use standard markdown format.
   how_it_works: |
                 Well it doesn't !!!
-                Its a delay line is just registers
+                Its a delay line is just 2 registers
 
 # Instructions on how someone could test your project, include things like what buttons do what and how to set the clock if needed
   how_to_test:  |
