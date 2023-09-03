@@ -90,6 +90,9 @@ module tt_um_ks_pyamnihc (
 
     assign status_arr[0] = ui_in;
     assign status_arr[1] = ~ui_in;
+    assign status_arr[2] = 8'hC0;
+    assign status_arr[3] = 8'h01;
+
 
     wire [SPI_ADDR_WIDTH-1:0] spi_addr;
     wire [SPI_DATA_WIDTH-1:0] spi_write_data, spi_read_data;
