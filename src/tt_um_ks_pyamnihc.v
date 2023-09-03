@@ -76,14 +76,14 @@ module tt_um_ks_pyamnihc (
     wire [SPI_DATA_WIDTH-1:0] config_arr [SPI_NUM_CONFIG_REG-1:0];
     genvar i;
     generate
-        for (i = 0; i < SPI_NUM_CONFIG_REG - 1; i = i + 1) begin
+        for (i = 0; i < SPI_NUM_CONFIG_REG; i = i + 1) begin
             assign config_arr[i] = config_bus_o[SPI_DATA_WIDTH*(i+1)-1:SPI_DATA_WIDTH*i];
         end
     endgenerate
     
     wire [SPI_DATA_WIDTH-1:0] status_arr [SPI_NUM_CONFIG_REG-1:0];
     generate
-        for (i = 0; i < SPI_NUM_STATUS_REG - 1; i = i + 1) begin
+        for (i = 0; i < SPI_NUM_STATUS_REG; i = i + 1) begin
             assign status_bus_i[SPI_DATA_WIDTH*(i+1)-1:SPI_DATA_WIDTH*i] = status_arr[i];
         end
     endgenerate
@@ -172,6 +172,7 @@ module tt_um_ks_pyamnihc (
     wire [I2S_AUDIO_DW-1:0] l_data, r_data; 
     assign l_data = i2s_noise_sel ? prbs_frame_15[I2S_AUDIO_DW-1:0] : ks_sample;
     assign r_data = i2s_noise_sel ? {1'b0, prbs_frame_7} : ks_sample;
+
     reg [I2S_AUDIO_DW-1:0] l_data_reg, r_data_reg; 
     wire l_load_en, r_load_en;
     
