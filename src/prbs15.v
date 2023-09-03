@@ -4,7 +4,8 @@ module prbs15 (
     input [14:0] lfsr_init_i,
     input load_prbs_i,
     input freeze_i,
-    output prbs_o
+    output prbs_o,
+    output [14:0] prbs_frame_o
 );
     reg [14:0] lfsr_reg;
     always @(posedge clk_i) begin
@@ -20,5 +21,6 @@ module prbs15 (
     end
     
     assign prbs_o = lfsr_reg[14];
+    assign prbs_frame_o = lfsr_reg;
 
 endmodule

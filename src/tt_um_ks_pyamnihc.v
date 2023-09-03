@@ -14,7 +14,7 @@ module tt_um_ks_pyamnihc (
     localparam SPI_INST_WIDTH = 1;
     localparam SPI_ADDR_WIDTH = 7;
     localparam SPI_DATA_WIDTH = 8;
-    localparam SPI_NUM_CONFIG_REG = 12;
+    localparam SPI_NUM_CONFIG_REG = 8;
     localparam SPI_NUM_STATUS_REG = 4;
 
     // I2S param.
@@ -135,6 +135,7 @@ module tt_um_ks_pyamnihc (
     wire freeze_prbs_15;
     assign freeze_prbs_15 = config_arr[1][0];
     wire prbs_15;
+    wire [14:0] prbs_frame_15;
 
     prbs15 prbs15_0 (
         .clk_i(clk_16),
@@ -142,7 +143,8 @@ module tt_um_ks_pyamnihc (
         .lfsr_init_i(lfsr_init_15),
         .load_prbs_i(load_prbs_15),
         .freeze_i(freeze_prbs_15),
-        .prbs_o(prbs_15)
+        .prbs_o(prbs_15),
+        .prbs_frame_o(prbs_frame_15)
     );
 
     wire rst_n_prbs_7;
@@ -154,6 +156,7 @@ module tt_um_ks_pyamnihc (
     wire freeze_prbs_7;
     assign freeze_prbs_7 = config_arr[1][1];
     wire prbs_7;
+    wire [6:0] prbs_frame_7;
 
     prbs7 prbs7_0 (
         .clk_i(clk_16),
@@ -161,12 +164,14 @@ module tt_um_ks_pyamnihc (
         .lfsr_init_i(lfsr_init_7),
         .load_prbs_i(load_prbs_7),
         .freeze_i(freeze_prbs_7),
-        .prbs_o(prbs_7)
+        .prbs_o(prbs_7),
+        .prbs_frame_o(prbs_frame_7)
     );
-
+    
+    wire i2s_noise_sel = config_arr[1][3];
     wire [I2S_AUDIO_DW-1:0] l_data, r_data; 
-    assign l_data = ks_sample;
-    assign r_data = ks_sample;
+    assign l_data = i2s_noise_sel ? prbs_frame_15[I2S_AUDIO_DW-1:0] : ks_sample;
+    assign r_data = i2s_noise_sel ? {1'b0, prbs_frame_7} : ks_sample;
     reg [I2S_AUDIO_DW-1:0] l_data_reg, r_data_reg; 
     wire l_load_en, r_load_en;
     
@@ -224,7 +229,7 @@ module tt_um_ks_pyamnihc (
     wire [KS_DATA_WIDTH-1:0] dynamics_R;
     assign dynamics_R = config_arr[7];
     wire [KS_DATA_WIDTH-1:0] ks_period;
-    assign ks_period = config_arr[8];
+    assign ks_period = config_arr[1][7:4];
 
     wire [KS_DATA_WIDTH-1:0] ks_sample;
 
