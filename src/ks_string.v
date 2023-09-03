@@ -1,5 +1,5 @@
 module ks_string #(
-    parameter MAX_LENGTH = 8,
+    parameter MAX_LENGTH = 4,
     parameter DATA_WIDTH = 8,
     parameter PRBS_WIDTH = 2,
     parameter EXTN_BITS = 4,
