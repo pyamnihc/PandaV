@@ -21,7 +21,7 @@ module tt_um_ks_pyamnihc (
     localparam I2S_AUDIO_DW = 8;
 
     // KS param.
-    localparam KS_MAX_LENGTH = 64;
+    localparam KS_MAX_LENGTH = 32;
     localparam KS_DATA_WIDTH = 8;
     localparam KS_PRBS_WIDTH = 2;
     localparam KS_EXTN_BITS = 4;
