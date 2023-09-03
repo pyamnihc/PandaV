@@ -12,7 +12,7 @@ module tb();
     localparam SPI_INST_WIDTH = 1;
     localparam SPI_ADDR_WIDTH = 7;
     localparam SPI_DATA_WIDTH = 8;
-    localparam SPI_NUM_CONFIG_REG = 8;
+    localparam SPI_NUM_CONFIG_REG = 10;
     localparam SPI_NUM_STATUS_REG = 4;
 
     // I2S param.
