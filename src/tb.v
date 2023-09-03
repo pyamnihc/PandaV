@@ -12,7 +12,7 @@ module tb();
     localparam SPI_INST_WIDTH = 1;
     localparam SPI_ADDR_WIDTH = 7;
     localparam SPI_DATA_WIDTH = 8;
-    localparam SPI_NUM_CONFIG_REG = 12;
+    localparam SPI_NUM_CONFIG_REG = 8;
     localparam SPI_NUM_STATUS_REG = 4;
 
     // I2S param.
@@ -26,7 +26,7 @@ module tb();
     localparam KS_FRAC_BITS = 4;
 
     localparam SPI_FRAME_WIDTH = SPI_INST_WIDTH+SPI_ADDR_WIDTH+SPI_DATA_WIDTH;
-    localparam USED_ADDR_WIDTH = 4;
+    localparam USED_ADDR_WIDTH = 3;
 
     localparam CLK_PERIOD = 62500/16;
     localparam SPI_CLK_PERIOD = 1000000;

@@ -1,7 +1,7 @@
 module register_map #(
     parameter ADDR_WIDTH = 7,
     parameter DATA_WIDTH = 8,
-    parameter NUM_CONFIG_REG = 12,
+    parameter NUM_CONFIG_REG = 8,
     parameter NUM_STATUS_REG = 4
 ) (
     input clk_i,
