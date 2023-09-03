@@ -9,6 +9,7 @@ module i2s_tx #(
         output l_load_en_o,
         output r_load_en_o
 );
+// referenced from i2s spec. at https://www.nxp.com/docs/en/user-manual/UM11732.pdf
     reg wsd[1:0];
     always @(posedge sck_i) begin
         wsd[0] <= ws_i;

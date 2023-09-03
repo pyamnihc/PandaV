@@ -13,6 +13,7 @@ module spi_slave_mem_interface #(
     input [DATA_WIDTH-1:0] read_data_i,
     output read_en_o
 );
+// CPOL: 0, CPHA: 0
 
 localparam SPI_FRAME_WIDTH = INST_WIDTH + ADDR_WIDTH + DATA_WIDTH;
 localparam BIT_COUNT_WIDTH = $clog2(SPI_FRAME_WIDTH) + 1;

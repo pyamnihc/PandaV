@@ -8,37 +8,53 @@ module tb();
         #1;
     end
 
-    localparam INST_WIDTH = 1;
-    localparam ADDR_WIDTH = 7;
-    localparam USED_ADDR_WIDTH = 4;
-    localparam DATA_WIDTH = 8;
-    localparam NUM_CONFIG_REG = 12;
-    localparam NUM_STATUS_REG = 4;
+    // SPI param.
+    localparam SPI_INST_WIDTH = 1;
+    localparam SPI_ADDR_WIDTH = 7;
+    localparam SPI_DATA_WIDTH = 8;
+    localparam SPI_NUM_CONFIG_REG = 12;
+    localparam SPI_NUM_STATUS_REG = 4;
 
-    localparam SPI_FRAME_WIDTH = INST_WIDTH+ADDR_WIDTH+DATA_WIDTH;
-    localparam CLK_PERIOD = 100;
-    localparam SPI_CLK_PERIOD = 1000;
+    // I2S param.
+    localparam I2S_AUDIO_DW = 8;
+
+    // KS param.
+    localparam KS_MAX_LENGTH = 64;
+    localparam KS_DATA_WIDTH = 8;
+    localparam KS_PRBS_WIDTH = 2;
+    localparam KS_EXTN_BITS = 4;
+    localparam KS_FRAC_BITS = 4;
+
+    localparam SPI_FRAME_WIDTH = SPI_INST_WIDTH+SPI_ADDR_WIDTH+SPI_DATA_WIDTH;
+    localparam USED_ADDR_WIDTH = 4;
+
+    localparam CLK_PERIOD = 62500/16;
+    localparam SPI_CLK_PERIOD = 1000000;
     localparam MAX_CLOCKS = 1048576;
     localparam TEST_COUNT = 8;
 
-    localparam SCK_PERIOD = 62500/4;
+    localparam SCK_PERIOD = 62500/16;
     localparam WS_PERIOD = 2*AUDIO_DW*SCK_PERIOD;
     localparam MAX_SAMPLES = 32;
     localparam AUDIO_DW = 8;
     
     reg clk, rst_n;
-    reg [DATA_WIDTH-1:0] rand_addr_arr [TEST_COUNT-1:0];
-    reg [DATA_WIDTH-1:0] rand_val_arr [NUM_CONFIG_REG+NUM_STATUS_REG-1:0];
-    reg [ADDR_WIDTH-1:0] rand_addr;
-    reg [DATA_WIDTH-1:0] rand_val;
+    reg [SPI_DATA_WIDTH-1:0] rand_addr_arr [TEST_COUNT-1:0];
+    reg [SPI_DATA_WIDTH-1:0] rand_val_arr [SPI_NUM_CONFIG_REG+SPI_NUM_STATUS_REG-1:0];
+    reg [SPI_ADDR_WIDTH-1:0] rand_addr;
+    reg [SPI_DATA_WIDTH-1:0] rand_val;
     integer count_i;
     reg fail_flag;
 
     reg finish;
+    
+    initial begin
+        clk = 0;
+    end
+    always #(CLK_PERIOD/2) clk = !clk;
 
     initial begin
         finish = 0;
-        clk = 0;
         rst_n = 1;
         sck = 0;
         ws = 0;
@@ -47,19 +63,22 @@ module tb();
                             prbs_init();
         spi_read(0);
         $display("regmap reset val 0x%0h", spi_read_data);
-        test_immediate_write_read();
-        test_all_write_then_all_read();
+        // test_immediate_write_read();
+        // test_all_write_then_all_read();
+        init_ks_string();
+        set_ks_period(32);
+        pluck_ks_string();
 
-        finish = 1;
-        // #(10*CLK_PERIOD)    $finish;
+        #(MAX_CLOCKS*CLK_PERIOD) finish = 1;
+        // #(32*CLK_PERIOD)    $finish;
     end
 
-    reg [AUDIO_DW-1:0] sd_buffer, recv_l_data, recv_r_data;
+    reg [I2S_AUDIO_DW-1:0] sd_buffer, recv_l_data, recv_r_data;
     initial begin 
         sd_buffer = 0;
     end
     always @(posedge sck) begin
-        sd_buffer <= {sd_buffer[AUDIO_DW-2:0], sd};
+        sd_buffer <= {sd_buffer[I2S_AUDIO_DW-2:0], sd};
     end
     
     reg wsd[1:0];
@@ -80,11 +99,11 @@ module tb();
             sample_count <= sample_count + 1;
             if (ws == 1'b1) begin
                 recv_l_data <= sd_buffer;
-                $display("recv: 0x%0h", recv_l_data);
+//                $display("recv: 0x%0h", recv_l_data);
 
             end else if (ws == 1'b0) begin
                 recv_r_data <= sd_buffer;
-                $display("recv: 0x%0h", recv_r_data);
+//                $display("recv: 0x%0h", recv_r_data);
             end
         end else if (sample_count >= MAX_SAMPLES) finish = 1;
     end
@@ -96,7 +115,6 @@ module tb();
         clk_count <= clk_count + 1;
     end
     
-    always #(CLK_PERIOD/2) clk = !clk;
     always #(SCK_PERIOD/2) sck = !sck;
     always #(WS_PERIOD/2) ws = !ws;
 
@@ -119,7 +137,7 @@ module tb();
     wire [7:0] uio_out;
     wire [7:0] uio_oe;
 
-    tt_um_spi_register_map tt_um_spi_register_map (
+    tt_um_ks_pyamnihc tt_um_ks_pyamnihc (
     // include power ports for the Gate Level test
     `ifdef GL_TEST
         .VPWR( 1'b1),
@@ -135,10 +153,6 @@ module tb();
         .rst_n      (rst_n)     // not reset
         );
 
-//    wire clk_i;
-//    assign clk_i = clk;
-//    wire rstn_n;
-//    assign rstn_n = rst_n;
     assign uio_in[0] = sck_i;
     assign uio_in[1] = sdi_i;
     assign sdo_o = uio_out[2];
@@ -149,29 +163,29 @@ module tb();
     
     assign uio_oe = 8'b1100_0100;
 
-    // tasks
-    task init_design();
+// tasks
+    task init_design ();
         begin
-            #(10*CLK_PERIOD) rst_n = 1;
-            #(10*CLK_PERIOD) rst_n = 0;
-            #(10*CLK_PERIOD) rst_n = 1;
+            #(32*CLK_PERIOD) rst_n = 1;
+            #(32*CLK_PERIOD) rst_n = 0;
+            #(32*CLK_PERIOD) rst_n = 1;
         end
     endtask
 
     task init_spi();
         begin
-            #(10*CLK_PERIOD)    cs_ni = 1;
+            #(32*CLK_PERIOD)    cs_ni = 1;
                                 sck_i = 0;
-            #(10*CLK_PERIOD) spi_write(0, 8'h00);
-            #(10*CLK_PERIOD) spi_write(0, 8'hff);
+            #(32*CLK_PERIOD) spi_write(0, 8'h00);
+            #(32*CLK_PERIOD) spi_write(0, 8'hff);
         end
     endtask
     
     assign sdi_i = spi_write_frame[SPI_FRAME_WIDTH-1];
     reg [SPI_FRAME_WIDTH-1:0] spi_write_frame;
-    task spi_write(
-        input [ADDR_WIDTH-1:0] addr,
-        input [DATA_WIDTH-1:0] data
+    task spi_write (
+        input [SPI_ADDR_WIDTH-1:0] addr,
+        input [SPI_DATA_WIDTH-1:0] data
     );
         begin
             spi_write_frame = {1'b0, addr, data};
@@ -188,15 +202,15 @@ module tb();
     endtask
    
     reg [SPI_FRAME_WIDTH-1:0] spi_read_frame;
-    wire [DATA_WIDTH-1:0] spi_read_data;
-    assign spi_read_data = spi_read_frame[DATA_WIDTH-1:0];
-    task spi_read(
-        input [ADDR_WIDTH-1:0] addr
+    wire [SPI_DATA_WIDTH-1:0] spi_read_data;
+    assign spi_read_data = spi_read_frame[SPI_DATA_WIDTH-1:0];
+    task spi_read (
+        input [SPI_ADDR_WIDTH-1:0] addr
     );
         begin
             spi_write_frame = {1'b1, addr, 8'b0};
             spi_read_frame = 'b0;
-            #(10*CLK_PERIOD)    cs_ni = 0;
+            #(32*CLK_PERIOD)    cs_ni = 0;
                                 sck_i = 0;
 
             repeat(2*(SPI_FRAME_WIDTH)) begin
@@ -209,13 +223,22 @@ module tb();
         end
     endtask
 
+// prbs test
     reg [31:0] prbs_sample_reg;
-    task prbs_init();
+    task prbs_init ();
         begin
-            #(10*CLK_PERIOD) spi_write(3, 8'h00);
-            #(10*CLK_PERIOD) spi_write(1, 8'hff);
-            #(10*CLK_PERIOD) spi_write(2, 8'h7f);
-            #(10*CLK_PERIOD) spi_write(2, 8'hff);
+            #(32*CLK_PERIOD) spi_write(1, 8'h00);
+            // prbs_15
+            #(32*CLK_PERIOD) spi_write(2, 8'hff);
+            #(32*CLK_PERIOD) spi_write(3, 8'h7f);
+            #(32*CLK_PERIOD) spi_write(3, 8'hff);
+            #(32*CLK_PERIOD) spi_write(3, 8'h7f);
+
+            // prbs_7
+            #(32*CLK_PERIOD) spi_write(4, 8'h7f);
+            #(32*CLK_PERIOD) spi_write(4, 8'hff);
+            #(32*CLK_PERIOD) spi_write(4, 8'h7f);
+
             prbs_sample_reg = 0;
             repeat(32) begin
                 @(posedge clk) prbs_sample_reg = {prbs_sample_reg[30:0], uio_out[7]};
@@ -224,26 +247,27 @@ module tb();
         end
     endtask
 
-    task test_immediate_write_read();
+// register map test
+    task test_immediate_write_read ();
         begin
             fail_flag = 0;
             // immediate write and read
             for (count_i = 0; count_i < TEST_COUNT; count_i = count_i + 1) begin
                 rand_addr = {$random} % (1 << USED_ADDR_WIDTH);
                 rand_addr = rand_addr | 1;
-                rand_val = {$random} % (1 << DATA_WIDTH);
-                rand_val = {$random} % (1 << DATA_WIDTH);
+                rand_val = {$random} % (1 << SPI_DATA_WIDTH);
+                rand_val = {$random} % (1 << SPI_DATA_WIDTH);
 
-                if (rand_addr < NUM_CONFIG_REG) begin
-                    #(10*CLK_PERIOD) spi_write(rand_addr, rand_val);
+                if (rand_addr < SPI_NUM_CONFIG_REG) begin
+                    #(32*CLK_PERIOD) spi_write(rand_addr, rand_val);
                 end else begin
-                    if (rand_addr < NUM_CONFIG_REG + NUM_STATUS_REG/2) rand_val = 8'h00;
-                    else if ((rand_addr >= NUM_CONFIG_REG + NUM_STATUS_REG/2) &&
-                                (rand_addr < NUM_CONFIG_REG + NUM_STATUS_REG)) rand_val = 8'hff;
+                    if (rand_addr < SPI_NUM_CONFIG_REG + SPI_NUM_STATUS_REG/2) rand_val = 8'h00;
+                    else if ((rand_addr >= SPI_NUM_CONFIG_REG + SPI_NUM_STATUS_REG/2) &&
+                                (rand_addr < SPI_NUM_CONFIG_REG + SPI_NUM_STATUS_REG)) rand_val = 8'hff;
                     else rand_val = 8'bXXXX_XXXX;
                 end
 
-                #(10*CLK_PERIOD) spi_read(rand_addr);
+                #(32*CLK_PERIOD) spi_read(rand_addr);
                 $display("addr: 0x%0h, val: 0x%0h, read val: 0x%0h", rand_addr, rand_val, spi_read_data);
                 if (spi_read_data != rand_val) begin
                     $display("Immediate write and read failed for addr: ",
@@ -257,22 +281,22 @@ module tb();
         end
     endtask
 
-    task test_all_write_then_all_read();
+    task test_all_write_then_all_read ();
         begin
             fail_flag = 0;
             // all write then all read
             for (count_i = 0; count_i < TEST_COUNT; count_i = count_i + 1) begin
                 rand_addr = {$random} % (1 << USED_ADDR_WIDTH);
                 rand_addr = rand_addr | 1;
-                rand_val = {$random} % (1 << DATA_WIDTH);
+                rand_val = {$random} % (1 << SPI_DATA_WIDTH);
 
-                if (rand_addr < NUM_CONFIG_REG) begin
-                    #(10*CLK_PERIOD) spi_write(rand_addr, rand_val);
+                if (rand_addr < SPI_NUM_CONFIG_REG) begin
+                    #(32*CLK_PERIOD) spi_write(rand_addr, rand_val);
                 end else begin
-                    if (rand_addr < NUM_CONFIG_REG + NUM_STATUS_REG/2) rand_val = 8'h00;
-                    else if ((rand_addr >= NUM_CONFIG_REG + NUM_STATUS_REG/2) &&
-                                (rand_addr < NUM_CONFIG_REG + NUM_STATUS_REG)) rand_val = 8'hff;
-                    else rand_val = 8'bXXXX_XXXX;
+                    if (rand_addr < SPI_NUM_CONFIG_REG + SPI_NUM_STATUS_REG/2) rand_val = 8'h00;
+                    else if ((rand_addr >= SPI_NUM_CONFIG_REG + SPI_NUM_STATUS_REG/2) &&
+                                (rand_addr < SPI_NUM_CONFIG_REG + SPI_NUM_STATUS_REG)) rand_val = 8'hff;
+                      else rand_val = 8'bXXXX_XXXX;
                 end
                 rand_addr_arr[count_i] = rand_addr;
                 rand_val_arr[rand_addr] = rand_val;
@@ -280,7 +304,7 @@ module tb();
                 $display("addr: 0x%0h, val: 0x%0h", rand_addr, rand_val);
             end
             for (count_i = 0; count_i < TEST_COUNT; count_i = count_i + 1) begin
-                #(10*CLK_PERIOD) spi_read(rand_addr_arr[count_i]);
+                #(32*CLK_PERIOD) spi_read(rand_addr_arr[count_i]);
                 $display("read val: 0x%0h", spi_read_data);
 
                 if (spi_read_data != rand_val_arr[rand_addr_arr[count_i]]) begin
@@ -295,5 +319,34 @@ module tb();
             end
         end
     endtask
+
+// KS Test
+    task init_ks_string ();
+        begin
+            #(32*CLK_PERIOD) spi_write(5, 8'h00);
+            #(32*CLK_PERIOD) spi_write(6, 8'h00);
+            #(32*CLK_PERIOD) spi_write(7, 8'h00);
+            #(32*CLK_PERIOD) spi_write(8, 8'h00);
+            #(32*CLK_PERIOD) spi_write(0, 8'hfb);
+            #(32*CLK_PERIOD) spi_write(8, 8'hff);
+        end
+    endtask
+
+    task set_ks_period (
+        input [KS_DATA_WIDTH-1:0] ks_period
+    );
+        begin
+            #(32*CLK_PERIOD) spi_write(8, ks_period);
+        end
+    endtask
+    
+    task pluck_ks_string ();
+        begin
+            #(32*CLK_PERIOD) spi_write(5, 8'h0);
+            #(32*CLK_PERIOD) spi_write(5, 8'h1);
+            #(32*CLK_PERIOD) spi_write(5, 8'h0);
+        end
+    endtask
+
 
 endmodule

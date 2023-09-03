@@ -10,8 +10,10 @@ project:
     - spi_slave_mem_interface.v
     - register_map.v
     - prbs15.v
+    - prbs7.v
     - i2s_tx.v
-  top_module:  "tt_um_spi_register_map"      # put the name of your top module here, make it unique by prepending your github username
+    - ks_string.v
+  top_module:  "tt_um_ks_pyamnihc" # put the name of your top module here, make it unique by prepending your github username
 
 # How many tiles your design occupies? A single tile is about 167x108 uM.
   tiles: "2x2"    # Valid values: 1x1, 1x2, 2x2, 4x2 or 8x2
@@ -24,10 +26,10 @@ yaml_version: 4
 #
 # Here is a great example: https://github.com/davidsiaw/tt02-davidsiaw-stackcalc/blob/38c5647f83aad2aec675d566aa3d67b98f0aac81/info.yaml
 documentation: 
-  author:       "Matt Venn"
-  title:        "fork of 7 segment seconds"
+  author:       "Chinmay Patil"
+  title:        "Karplus-Strong String Synthesis"
   language:     "Verilog"
-  description:  "Count up to 10, one second at a time."
+  description:  "Plucked string sound synthesizer"
 
 # Longer description of how the project works. You can use standard markdown format.
   how_it_works: |
@@ -80,9 +82,9 @@ documentation:
     - second counter bit 7
 
 # The following fields are optional
-  tag:          "timer, test"      # comma separated list of tags: test, encryption, experiment, clock, animation, utility, industrial, pwm, fpga, alu, microprocessor, risc, riscv, sensor, signal generator, fft, filter, music, bcd, sound, serial, timer, random number generator, calculator, decoder, counter, puzzle, multiplier, game, oscillator,
+  tag:          "filter, music"      # comma separated list of tags: test, encryption, experiment, clock, animation, utility, industrial, pwm, fpga, alu, microprocessor, risc, riscv, sensor, signal generator, fft, filter, music, bcd, sound, serial, timer, random number generator, calculator, decoder, counter, puzzle, multiplier, game, oscillator,
   external_hw:  ""      # Describe any external hardware needed
-  discord:      "mattvenn"      # Your discord handle, used for communication and automatically assigning tapeout role after a submission
+  discord:      ""      # Your discord handle, used for communication and automatically assigning tapeout role after a submission
   doc_link:     ""      # URL to longer form documentation, eg the README.md in your repository
-  clock_hz:     10000000       # Clock frequency in Hz (if required)
+  clock_hz:     256000       # Clock frequency in Hz (if required)
   picture:      ""      # relative path to a picture in your repository

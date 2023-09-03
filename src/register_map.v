@@ -61,9 +61,9 @@ module register_map #(
             end
         end
     end
+    assign read_data_o = read_data_reg; 
 
-    assign read_data_o = read_data_reg;
-    
+    // attempt to non-zero init. can't make it work with skywater-pdk
     always @(posedge clk_i) begin
         if (!rstn_n) begin
             register_map_mem[0] <= 8'hCC;
