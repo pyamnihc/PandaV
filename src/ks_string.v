@@ -34,9 +34,9 @@ assign period_idx = clamped_period - 8'h01;
 reg [3:0] pluck_shift_reg;
 always @(posedge clk_i) begin
     if (!rst_ni) begin
-        pluck_shift_reg = 'b0;
+        pluck_shift_reg <= 'b0;
     end else begin
-        pluck_shift_reg = {pluck_shift_reg[2:0], pluck_i};
+        pluck_shift_reg <= {pluck_shift_reg[2:0], pluck_i};
     end
 end
 
@@ -195,11 +195,6 @@ assign ks_sample_o = ks_sample_loop_o;
 // wavetable
 reg [DATA_WIDTH-1:0] string_reg [MAX_LENGTH-1:0];
 // reg [MAX_LENGTH-1:0] [DATA_WIDTH-1:0] string_reg;
-wire [DATA_WIDTH-1:0] w1, w2, w3, w4;
-assign w1 = string_reg[0];
-assign w2 = string_reg[1];
-assign w3 = string_reg[2];
-assign w4 = string_reg[3];
 
 always @(posedge clk_i) begin
     if (!rst_ni) begin

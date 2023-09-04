@@ -39,9 +39,9 @@ module register_map #(
     reg [3:0] write_en_shift_reg;
     always @(posedge clk_i) begin
         if (!rst_n) begin
-            write_en_shift_reg = 'b0;
+            write_en_shift_reg <= 'b0;
         end else begin
-            write_en_shift_reg = {write_en_shift_reg[2:0], write_en_i};
+            write_en_shift_reg <= {write_en_shift_reg[2:0], write_en_i};
         end
     end
 
