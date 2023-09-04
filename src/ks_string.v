@@ -36,7 +36,7 @@ always @(posedge clk_i) begin
     if (!rst_ni) begin
         pluck_shift_reg = 'b0;
     end else begin
-        pluck_shift_reg = {pluck_shift_reg[6:0], pluck_i};
+        pluck_shift_reg = {pluck_shift_reg[2:0], pluck_i};
     end
 end
 
