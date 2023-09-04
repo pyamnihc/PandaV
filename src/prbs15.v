@@ -7,6 +7,9 @@ module prbs15 (
     output prbs_o,
     output [14:0] prbs_frame_o
 );
+// referenced from, https://en.wikipedia.org/wiki/Pseudorandom_binary_sequence
+//                  PRBS15 = x^15 + x^14 + 1
+
     reg [14:0] lfsr_reg;
     always @(posedge clk_i) begin
         if (!rst_ni) begin

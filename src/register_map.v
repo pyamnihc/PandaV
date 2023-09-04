@@ -1,11 +1,11 @@
 module register_map #(
     parameter ADDR_WIDTH = 7,
     parameter DATA_WIDTH = 8,
-    parameter NUM_CONFIG_REG = 8,
+    parameter NUM_CONFIG_REG = 12,
     parameter NUM_STATUS_REG = 4
 ) (
     input clk_i,
-    input rstn_n,
+    input rst_n,
     input [ADDR_WIDTH-1:0] addr_i,
     input [DATA_WIDTH-1:0] write_data_i,
     input write_en_i,
@@ -35,50 +35,52 @@ module register_map #(
     endgenerate
     
     // synchronize to clk_i domain
-    reg [DATA_WIDTH-1:0] write_data_sync, write_data_reg;
+    // write_data should be stable when write_en is asserted
+    reg [3:0] write_en_shift_reg;
     always @(posedge clk_i) begin
-        if (!rstn_n) begin
-            write_data_sync <= 'b0;
-            write_data_reg <= 'b0;
-        end else if (write_en_i == 1) begin
-            write_data_sync <= write_data_i;
-            write_data_reg <= write_data_sync;
+        if (!rst_n) begin
+            write_en_shift_reg = 'b0;
+        end else begin
+            write_en_shift_reg = {write_en_shift_reg[6:0], write_en_i};
         end
     end
 
-    reg [DATA_WIDTH-1:0] read_data_sync, read_data_reg;
+    wire write_en_rise_pulse;
+    assign write_en_rise_pulse = !write_en_shift_reg[3] && write_en_shift_reg[2];
+    
+    reg [DATA_WIDTH-1:0] read_data_1, read_data_2;
     always @(posedge clk_i) begin
-        if (!rstn_n) begin
-            read_data_sync <= 'b0;
-            read_data_reg <= 'b0;
+        if (!rst_n) begin
+            read_data_1 <= 'b0;
+            read_data_2 <= 'b0;
         end else if (read_en_i == 1) begin
             if (addr_i < (NUM_CONFIG_REG + NUM_STATUS_REG)) begin
-                read_data_sync <= csr_read_arr[addr_i];
-                read_data_reg <= read_data_sync;
+                read_data_1 <= csr_read_arr[addr_i];
+                read_data_2 <= read_data_1;
             end
             else begin
-                read_data_reg <= 8'hff;
+                read_data_2 <= 8'hff;
             end
         end
     end
-    assign read_data_o = read_data_reg; 
+    assign read_data_o = read_data_2; 
 
     // attempt to non-zero init. can't make it work with skywater-pdk
     always @(posedge clk_i) begin
-        if (!rstn_n) begin
+        if (!rst_n) begin
             register_map_mem[0] <= 8'hCC;
         end else if ((addr_i == 0) && (addr_i < NUM_CONFIG_REG)) begin
-            if (write_en_i) register_map_mem[0] <= write_data_reg;
+            if (write_en_rise_pulse == 1) register_map_mem[0] <= write_data_i;
         end
     end
     
     generate 
         for (i = 1; i < NUM_CONFIG_REG; i = i + 1) begin
             always @(posedge clk_i) begin
-                if (!rstn_n) begin
+                if (!rst_n) begin
                     register_map_mem[i] <= 'b0;
                 end else if ((addr_i == i) && (addr_i < NUM_CONFIG_REG)) begin
-                    if (write_en_i) register_map_mem[i] <= write_data_reg;
+                    if (write_en_rise_pulse == 1) register_map_mem[i] <= write_data_i;
                 end
             end
         end

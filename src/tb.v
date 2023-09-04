@@ -19,7 +19,7 @@ module tb();
     localparam I2S_AUDIO_DW = 8;
 
     // KS param.
-    localparam KS_MAX_LENGTH = 64;
+    localparam KS_MAX_LENGTH = 48;
     localparam KS_DATA_WIDTH = 8;
     localparam KS_PRBS_WIDTH = 2;
     localparam KS_EXTN_BITS = 4;
@@ -58,15 +58,15 @@ module tb();
         rst_n = 1;
         sck = 0;
         ws = 0;
-        #(10*CLK_PERIOD)    init_design();
-                            init_spi();
-                            prbs_init();
+        #(10*CLK_PERIOD) init_design();
+        #(10*CLK_PERIOD) init_spi();
+        #(10*CLK_PERIOD) prbs_init();
         spi_read(0);
         $display("regmap reset val 0x%0h", spi_read_data);
         // test_immediate_write_read();
         // test_all_write_then_all_read();
         init_ks_string();
-        set_ks_period(32);
+        set_ks_period(255);
         pluck_ks_string();
 
         #(MAX_CLOCKS*CLK_PERIOD) finish = 1;
@@ -108,7 +108,6 @@ module tb();
         end else if (sample_count >= MAX_SAMPLES) finish = 1;
     end
 
-
     reg [63:0] clk_count;
     initial clk_count = 0;
     always @(posedge clk) begin
@@ -129,7 +128,7 @@ module tb();
     // reg  rst_n;
     reg  ena;
     wire  [7:0] ui_in;
-    assign ui_in = 8'hff;
+    assign ui_in = 8'h00;
     wire  [7:0] uio_in;
 
     wire [6:0] segments = uo_out[6:0];
@@ -177,7 +176,6 @@ module tb();
             #(32*CLK_PERIOD)    cs_ni = 1;
                                 sck_i = 0;
             #(32*CLK_PERIOD) spi_write(0, 8'h00);
-            #(32*CLK_PERIOD) spi_write(0, 8'hff);
         end
     endtask
     
@@ -227,19 +225,25 @@ module tb();
     reg [31:0] prbs_sample_reg;
     task prbs_init ();
         begin
-            #(32*CLK_PERIOD) spi_write(1, 8'h00);
-            // prbs_15
-            #(32*CLK_PERIOD) spi_write(2, 8'hff);
-            #(32*CLK_PERIOD) spi_write(3, 8'h7f);
-            #(32*CLK_PERIOD) spi_write(3, 8'hff);
-            #(32*CLK_PERIOD) spi_write(3, 8'h7f);
+            // reset prbs
+            #(32*CLK_PERIOD) spi_write(0, 8'h00);
+            #(32*CLK_PERIOD) spi_write(0, 8'h03);
+            #(32*CLK_PERIOD) spi_write(0, 8'h00);
+            
+            // // load prbs
+            // // prbs_15
+            // #(32*CLK_PERIOD) spi_write(1, 8'h00);
+            // #(32*CLK_PERIOD) spi_write(2, 8'h00);
+            // #(32*CLK_PERIOD) spi_write(2, 8'h80);
+            // #(32*CLK_PERIOD) spi_write(2, 8'h00);
 
-            // prbs_7
-            #(32*CLK_PERIOD) spi_write(4, 8'h7f);
-            #(32*CLK_PERIOD) spi_write(4, 8'hff);
-            #(32*CLK_PERIOD) spi_write(4, 8'h7f);
 
-            prbs_sample_reg = 0;
+            // // prbs_7
+            // #(32*CLK_PERIOD) spi_write(3, 8'h00);
+            // #(32*CLK_PERIOD) spi_write(3, 8'h80);
+            // #(32*CLK_PERIOD) spi_write(3, 8'h00);
+
+            #(32*CLK_PERIOD) prbs_sample_reg = 0;
             repeat(32) begin
                 @(posedge clk) prbs_sample_reg = {prbs_sample_reg[30:0], uio_out[7]};
             end
@@ -323,12 +327,17 @@ module tb();
 // KS Test
     task init_ks_string ();
         begin
+            #(32*CLK_PERIOD) spi_write(4, 8'h00);
             #(32*CLK_PERIOD) spi_write(5, 8'h00);
             #(32*CLK_PERIOD) spi_write(6, 8'h00);
-            #(32*CLK_PERIOD) spi_write(7, 8'h00);
-            #(32*CLK_PERIOD) spi_write(8, 8'h00);
-            #(32*CLK_PERIOD) spi_write(0, 8'hfb);
-            #(32*CLK_PERIOD) spi_write(8, 8'hff);
+            #(32*CLK_PERIOD) set_ks_period(KS_MAX_LENGTH);
+
+            #(32*CLK_PERIOD) spi_write(0, 8'h00);
+            #(32*CLK_PERIOD) spi_write(0, 8'h04);
+            #(32*CLK_PERIOD) spi_write(0, 8'h00);
+
+            // enable direct prbs output
+            // #(32*CLK_PERIOD) spi_write(0, 8'h80);
         end
     endtask
 
@@ -336,15 +345,15 @@ module tb();
         input [KS_DATA_WIDTH-1:0] ks_period
     );
         begin
-            #(32*CLK_PERIOD) spi_write(1, (ks_period << 4));
+            #(32*CLK_PERIOD) spi_write(7, ks_period);
         end
     endtask
     
     task pluck_ks_string ();
         begin
-            #(32*CLK_PERIOD) spi_write(5, 8'h0);
-            #(32*CLK_PERIOD) spi_write(5, 8'h1);
-            #(32*CLK_PERIOD) spi_write(5, 8'h0);
+            #(32*CLK_PERIOD) spi_write(4, 8'h00);
+            #(32*CLK_PERIOD) spi_write(4, 8'h01);
+            #(32*CLK_PERIOD) spi_write(4, 8'h00);
         end
     endtask
 

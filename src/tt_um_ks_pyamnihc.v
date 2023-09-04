@@ -21,7 +21,7 @@ module tt_um_ks_pyamnihc (
     localparam I2S_AUDIO_DW = 8;
 
     // KS param.
-    localparam KS_MAX_LENGTH = 64;
+    localparam KS_MAX_LENGTH = 48;
     localparam KS_DATA_WIDTH = 8;
     localparam KS_PRBS_WIDTH = 2;
     localparam KS_EXTN_BITS = 4;
@@ -88,11 +88,9 @@ module tt_um_ks_pyamnihc (
         end
     endgenerate
 
-    assign status_arr[0] = ui_in;
-    assign status_arr[1] = ~ui_in;
-    assign status_arr[2] = 8'hC0;
-    assign status_arr[3] = 8'h01;
-
+    assign status_arr[0] = 8'hC0;
+    assign status_arr[1] = 8'h01;
+    assign status_arr[2] = ui_in;
 
     wire [SPI_ADDR_WIDTH-1:0] spi_addr;
     wire [SPI_DATA_WIDTH-1:0] spi_write_data, spi_read_data;
@@ -119,7 +117,7 @@ module tt_um_ks_pyamnihc (
                     .NUM_STATUS_REG(SPI_NUM_STATUS_REG)
     ) register_map_0 (
         .clk_i(clk),
-        .rstn_n(rst_n),
+        .rst_n(rst_n),
         .addr_i(spi_addr),
         .write_data_i(spi_write_data),
         .write_en_i(spi_write_en),
@@ -130,13 +128,13 @@ module tt_um_ks_pyamnihc (
     );
     
     wire rst_n_prbs_15;
-    assign rst_n_prbs_15 = config_arr[0][0] && !ui_in[0];
+    assign rst_n_prbs_15 = ~config_arr[0][0] && ~ui_in[0];
     wire [14:0] lfsr_init_15;
-    assign lfsr_init_15 = {config_arr[3][6:0], config_arr[2][7:0]};
+    assign lfsr_init_15 = {~config_arr[2][6:0], ~config_arr[1][7:0]};
     wire load_prbs_15;
-    assign load_prbs_15 = config_arr[3][7] || ui_in[1];
+    assign load_prbs_15 = config_arr[2][7] || ui_in[1];
     wire freeze_prbs_15;
-    assign freeze_prbs_15 = config_arr[1][0] || ui_in[2];
+    assign freeze_prbs_15 = config_arr[0][4] || ui_in[2];
     wire prbs_15;
     wire [14:0] prbs_frame_15;
 
@@ -151,13 +149,13 @@ module tt_um_ks_pyamnihc (
     );
 
     wire rst_n_prbs_7;
-    assign rst_n_prbs_7 = config_arr[0][1] && !ui_in[0];
+    assign rst_n_prbs_7 = ~config_arr[0][1] && ~ui_in[0];
     wire [6:0] lfsr_init_7;
-    assign lfsr_init_7 = config_arr[4][6:0];
+    assign lfsr_init_7 = ~config_arr[3][6:0];
     wire load_prbs_7;
-    assign load_prbs_7 = config_arr[4][7] || ui_in[1];
+    assign load_prbs_7 = config_arr[3][7] || ui_in[1];
     wire freeze_prbs_7;
-    assign freeze_prbs_7 = config_arr[1][1] || ui_in[3];
+    assign freeze_prbs_7 = config_arr[0][5] || ui_in[3];
     wire prbs_7;
     wire [6:0] prbs_frame_7;
 
@@ -171,7 +169,7 @@ module tt_um_ks_pyamnihc (
         .prbs_frame_o(prbs_frame_7)
     );
     
-    wire i2s_noise_sel = config_arr[1][3] || ui_in[4];
+    wire i2s_noise_sel = config_arr[0][7] || ui_in[4];
     wire [I2S_AUDIO_DW-1:0] l_data, r_data; 
     assign l_data = i2s_noise_sel ? prbs_frame_15[I2S_AUDIO_DW-1:0] : ks_sample;
     assign r_data = i2s_noise_sel ? {1'b0, prbs_frame_7} : ks_sample;
@@ -213,27 +211,27 @@ module tt_um_ks_pyamnihc (
     );
 
     wire rst_n_ks_string;
-    assign rst_n_ks_string = config_arr[0][2] && ui_in[5];
+    assign rst_n_ks_string = ~config_arr[0][2] && ~ui_in[5];
     wire ks_freeze;
-    assign ks_freeze = config_arr[1][2];
+    assign ks_freeze = config_arr[0][7];
     wire pluck;
-    assign pluck = config_arr[5][0] && ui_in[6];
+    assign pluck = config_arr[4][0] || ui_in[6];
     wire round_en;
-    assign round_en = config_arr[5][1];
-    wire alt_pattern_prbs_n;
-    assign alt_pattern_prbs_n = config_arr[5][2];
+    assign round_en = config_arr[4][1];
+    wire toggle_pattern_prbs_n;
+    assign toggle_pattern_prbs_n = config_arr[4][2];
     wire drum_string_n;
-    assign drum_string_n = config_arr[5][3];
+    assign drum_string_n = config_arr[4][3];
     wire fine_tune_en;
-    assign fine_tune_en = config_arr[5][4];
+    assign fine_tune_en = config_arr[4][4];
     wire dynamics_en;
-    assign dynamics_en = config_arr[5][5];
+    assign dynamics_en = config_arr[4][5];
     wire [KS_DATA_WIDTH-1:0] fine_tune_C;
-    assign fine_tune_C = config_arr[6];
+    assign fine_tune_C = config_arr[5];
     wire [KS_DATA_WIDTH-1:0] dynamics_R;
-    assign dynamics_R = config_arr[7];
+    assign dynamics_R = config_arr[6];
     wire [KS_DATA_WIDTH-1:0] ks_period;
-    assign ks_period = config_arr[1][7:4];
+    assign ks_period = config_arr[7];
 
     wire [KS_DATA_WIDTH-1:0] ks_sample;
 
@@ -245,11 +243,11 @@ module tt_um_ks_pyamnihc (
         .FRAC_BITS(KS_FRAC_BITS)
     ) ks_string_0 (
         .clk_i(clk_16),
-        .rst_n(rst_n && rst_n_ks_string),
+        .rst_ni(rst_n && rst_n_ks_string),
         .freeze_i(ks_freeze),
         .pluck_i(pluck),
         .round_en_i(round_en),
-        .alt_pattern_prbs_ni(alt_pattern_prbs_n), 
+        .toggle_pattern_prbs_ni(toggle_pattern_prbs_n), 
         .drum_string_ni(drum_string_n),
         .fine_tune_en_i(fine_tune_en),
         .fine_tune_C_i(fine_tune_C),

@@ -1,16 +1,16 @@
 module ks_string #(
-    parameter MAX_LENGTH = 4,
+    parameter MAX_LENGTH = 256,
     parameter DATA_WIDTH = 8,
     parameter PRBS_WIDTH = 2,
     parameter EXTN_BITS = 4,
     parameter FRAC_BITS = 4
     ) (
     input clk_i,
-    input rst_n,
+    input rst_ni,
     input freeze_i,
     input round_en_i,
     input pluck_i,
-    input alt_pattern_prbs_ni, 
+    input toggle_pattern_prbs_ni, 
     input drum_string_ni,
     input fine_tune_en_i,
     input signed [DATA_WIDTH-1:0] fine_tune_C_i,
@@ -21,25 +21,27 @@ module ks_string #(
     output [DATA_WIDTH-1:0] ks_sample_o
 );
 
-// referenced from http://www.music.mcgill.ca/~gary/courses/papers/Karplus-Strong-CMJ-1983.pdf
+// referenced from, papers at   https://doi.org/10.2307/3680062
+//                              https://doi.org/10.2307/3680063
+
 localparam EXTENDED_WIDTH = DATA_WIDTH+EXTN_BITS;
 
+wire [DATA_WIDTH-1:0] clamped_period = period_i < MAX_LENGTH ? period_i : MAX_LENGTH;
 wire [DATA_WIDTH-1:0] period_idx;
-assign period_idx = period_i - 8'h01;
+assign period_idx = clamped_period - 8'h01;
 
-// pluck detect
-reg pluck_reg_1, pluck_reg_2;
+// pluck sync and detect
+reg [3:0] pluck_shift_reg;
 always @(posedge clk_i) begin
-    if (!rst_n) begin
-        pluck_reg_1 <= 'b0;
-        pluck_reg_2 <= 'b0;
+    if (!rst_ni) begin
+        pluck_shift_reg = 'b0;
     end else begin
-        pluck_reg_1 <= pluck_i;
-        pluck_reg_1 <= pluck_reg_2;
+        pluck_shift_reg = {pluck_shift_reg[6:0], pluck_i};
     end
 end
-wire pluck_pulse;
-assign pluck_pulse = !pluck_reg_2 && pluck_reg_1;
+
+wire pluck_rise_pulse;
+assign pluck_rise_pulse = !pluck_shift_reg[3] && pluck_shift_reg[2];
 
 // noise burst capture
 reg signed [EXTENDED_WIDTH+FRAC_BITS-1:0] noise_reg;
@@ -57,7 +59,7 @@ assign yd_0 = noise_burst_dyn;
 reg signed [EXTENDED_WIDTH+FRAC_BITS-1:0] yd_1;
 
 always @(posedge clk_i) begin
-    if (!rst_n) yd_1 <= 'b0;
+    if (!rst_ni) yd_1 <= 'b0;
     else yd_1 <= yd_0;
 end
 
@@ -70,20 +72,29 @@ assign noise_burst_dyn = noise_burst + scaled_R_diff;
 wire signed [EXTENDED_WIDTH+FRAC_BITS-1:0] noise_burst_w;
 assign noise_burst_w = dynamics_en_i ? noise_burst_dyn : noise_burst;
 
+reg toggle_bit;
 always @(posedge clk_i) begin
-    if (!rst_n) begin
+    if (!rst_ni) toggle_bit <= 'b0;
+    else toggle_bit <= ~toggle_bit;
+end
+
+wire [EXTENDED_WIDTH+FRAC_BITS-1:0] toggle_clamp;
+assign toggle_clamp = {{EXTN_BITS{toggle_bit}}, {toggle_bit, {DATA_WIDTH-1{~toggle_bit}}}, {FRAC_BITS{~toggle_bit}}};
+
+always @(posedge clk_i) begin
+    if (!rst_ni) begin
         prbs_burst_counter <= 'b0;
         noise_reg <= 'b0;
         prbs_burst_en <= 'b0;
     end else begin
-        if (pluck_pulse == 1'b1) begin
+        if (pluck_rise_pulse == 1'b1) begin
             prbs_burst_counter <= 'b0;
             noise_reg <= prbs_data_i;
             prbs_burst_en <= 'b1;
         end else if (prbs_burst_en == 1'b1) begin
-            if (prbs_burst_counter < period_i) begin
+            if (prbs_burst_counter < clamped_period) begin
                 prbs_burst_counter <= prbs_burst_counter + 1;
-                noise_reg <= alt_pattern_prbs_ni ? ~noise_reg : noise_burst_w;
+                noise_reg <= toggle_pattern_prbs_ni ? toggle_clamp : noise_burst_w;
                 prbs_burst_en <= 1'b1;
             end else begin
                 prbs_burst_counter <= 'b0;
@@ -137,7 +148,7 @@ assign ks_sample = ks_sample_clamped_w[DATA_WIDTH+FRAC_BITS-1:FRAC_BITS];
 
 reg signed [EXTENDED_WIDTH+FRAC_BITS-1:0] strong_filter_1;
 always @(posedge clk_i) begin
-    if (!rst_n) strong_filter_1 <= 'b0;
+    if (!rst_ni) strong_filter_1 <= 'b0;
     else strong_filter_1 <= strong_filter_w;
 end
 
@@ -151,7 +162,7 @@ assign scaled_C_diff = ((fine_tune_C_i * C_diff) >>> (DATA_WIDTH-1));
 assign y_0 = strong_filter_1 + scaled_C_diff;
 
 always @(posedge clk_i) begin
-    if (!rst_n) y_1 <= 'b0;
+    if (!rst_ni) y_1 <= 'b0;
     else y_1 <= y_0;
 end
 
@@ -183,9 +194,15 @@ assign ks_sample_o = ks_sample_loop_o;
 
 // wavetable
 reg [DATA_WIDTH-1:0] string_reg [MAX_LENGTH-1:0];
+// reg [MAX_LENGTH-1:0] [DATA_WIDTH-1:0] string_reg;
+wire [DATA_WIDTH-1:0] w1, w2, w3, w4;
+assign w1 = string_reg[0];
+assign w2 = string_reg[1];
+assign w3 = string_reg[2];
+assign w4 = string_reg[3];
 
 always @(posedge clk_i) begin
-    if (!rst_n) begin
+    if (!rst_ni) begin
         string_reg[0] <= 'b0;
     end else if (freeze_i) begin
         string_reg[0] <= string_reg[0];
@@ -198,7 +215,7 @@ genvar i;
 generate 
     for (i = 1; i < MAX_LENGTH; i = i + 1) begin
         always @(posedge clk_i) begin
-            if (!rst_n) begin
+            if (!rst_ni) begin
                 string_reg[i] <= 'b0;
             end else if (freeze_i) begin
                 string_reg[i] <= string_reg[i];
@@ -211,7 +228,7 @@ endgenerate
 
 reg [DATA_WIDTH-1:0] delay_reg;
 always @(posedge clk_i) begin
-    if (!rst_n) begin
+    if (!rst_ni) begin
         delay_reg <= 'b0;
     end else begin
         delay_reg <= string_reg[period_idx]; 
