@@ -33,36 +33,34 @@ documentation:
 
 # Longer description of how the project works. You can use standard markdown format.
   how_it_works: |
-This is simplified implementation of Karplus-Strong (KS) string synthesis based on papers [Digital Synthesis of Plucked-String and Drum Timbres](https://doi.org/10.2307/3680062) and [Extensions of the Karplus-Strong Plucked-String Algorithm](https://doi.org/10.2307/3680063). 
- 
- A register map controls and configures the KS synthesis module. The register map is accessed through SPI interface. Synthesized sound samples can be accessed through the I2S Transmitter interface.
+    This is simplified implementation of Karplus-Strong (KS) string synthesis based on papers [Digital Synthesis of Plucked-String and Drum Timbres](https://doi.org/10.2307/3680062) and [Extensions of the Karplus-Strong Plucked-String Algorithm](https://doi.org/10.2307/3680063). 
+     
+     A register map controls and configures the KS synthesis module. The register map is accessed through SPI interface. Synthesized sound samples can be accessed through the I2S Transmitter interface.
 
-### SPI Frame
-16-bit framewith CPOL=0, CPHA=0  defined as,
-|	$\text{Read}/\overline{\text{Write}}$	|	$\text{Address[6:0]}$	|	$\text{Data[7:0]}$	|
-|:-:|:-:|:-:|
+    ### SPI Frame
+    16-bit framewith CPOL=0, CPHA=0  defined as,
+    |	$\text{Read}/\overline{\text{Write}}$	|	$\text{Address[6:0]}$	|	$\text{Data[7:0]}$	|
+    |:-:|:-:|:-:|
 
-### Register Map
+    ### Register Map
 
+    | Register/Bit | 7                  | 6                   | 5             | 4              | 3             | 2                     | 1             | 0              |
+    | ------------ | ------------------ | ------------------- | ------------- | -------------- | ------------- | --------------------- | ------------- | -------------- |
+    | 0            | i2s_noise_sel      | ks_freeze           | freeze_prbs_7 | freeze_prbs_15 |               | ~rst_n_ks_string      | ~rst_n_prbs_7 | ~rst_n_prbs_15 |
+    | 1            | ~lfsr_init_15[7:0] |
+    | 2            | load_prbs_15       | ~lfsr_init_15[14:8] |
+    | 3            | load_prbs_7        | ~lfsr_init_7[6:0]   |
+    | 4            |                    |                     | dynamics_en   | fine_tune_n    | drum_string_n | toggle_pattern_prbs_n | round_en      | pluck          |
+    | 5            | fine_tune_C[7:0]   |
+    | 6            | dynamics_R[7:0]    |
+    | 7            | ks_period[7:0]     |
+    | 9            | 1                  | 1                   | 0             | 0              | 0             | 0                     | 0             | 0              |
+    | 10           | 0                  | 0                   | 0             | 0              | 0             | 0                     | 0             | 1              |
+    | 11           | ui_in[7]           | ui_in[6]            | ui_in[5]      | ui_in[4]       | ui_in[3]      | ui_in[2]              | ui_in[1]      | ui_in[0]       |
+    | 12           |                    |                     |               |                |               |                       |               |                |
 
-
-| Register/Bit | 7                  | 6                   | 5             | 4              | 3             | 2                     | 1             | 0              |
-| ------------ | ------------------ | ------------------- | ------------- | -------------- | ------------- | --------------------- | ------------- | -------------- |
-| 0            | i2s_noise_sel      | ks_freeze           | freeze_prbs_7 | freeze_prbs_15 |               | ~rst_n_ks_string      | ~rst_n_prbs_7 | ~rst_n_prbs_15 |
-| 1            | ~lfsr_init_15[7:0] |
-| 2            | load_prbs_15       | ~lfsr_init_15[14:8] |
-| 3            | load_prbs_7        | ~lfsr_init_7[6:0]   |
-| 4            |                    |                     | dynamics_en   | fine_tune_n    | drum_string_n | toggle_pattern_prbs_n | round_en      | pluck          |
-| 5            | fine_tune_C[7:0]   |
-| 6            | dynamics_R[7:0]    |
-| 7            | ks_period[7:0]     |
-| 9            | 1                  | 1                   | 0             | 0              | 0             | 0                     | 0             | 0              |
-| 10           | 0                  | 0                   | 0             | 0              | 0             | 0                     | 0             | 1              |
-| 11           | ui_in[7]           | ui_in[6]            | ui_in[5]      | ui_in[4]       | ui_in[3]      | ui_in[2]              | ui_in[1]      | ui_in[0]       |
-| 12           |                    |                     |               |                |               |                       |               |                |
-
-### I2S Transmitter
-The 8-bit signed sound samples can be read out at `SCK=16000 kHz` through this interface.
+    ### I2S Transmitter
+    The 8-bit signed sound samples can be read out at `SCK=16000 kHz` through this interface.
 
 
 # Instructions on how someone could test your project, include things like what buttons do what and how to set the clock if needed
