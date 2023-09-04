@@ -32,7 +32,7 @@ always @(posedge sck_i or posedge cs_ni) begin
         bit_count <= 'b0;
     end else if ((read_flag || write_flag) && 
                     (bit_count == (SPI_FRAME_WIDTH))) begin
-        bit_count <= INST_WIDTH+ADDR_WIDTH;
+        bit_count <= INST_WIDTH+ADDR_WIDTH+1;
     end else begin
         bit_count <= bit_count + 1'b1;
     end

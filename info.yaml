@@ -39,7 +39,7 @@ documentation:
     ### SPI Frame
     16-bit framewith CPOL=0, CPHA=0  defined as,
     |	$\text{Read}/\overline{\text{Write}}$	|	$\text{Address[6:0]}$	|	$\text{Data[7:0]}$	|
-    |:-:|:-:|:-:|
+    |:---:|:---:|:---:|
 
     ### Register Map
 
