@@ -68,7 +68,7 @@ module register_map #(
     // attempt to non-zero init. can't make it work with skywater-pdk
     always @(posedge clk_i) begin
         if (!rst_n) begin
-            register_map_mem[0] <= 8'hCC;
+            register_map_mem[0] <= 'b0;
         end else if ((addr_i == 0) && (addr_i < NUM_CONFIG_REG)) begin
             if (write_en_rise_pulse == 1) register_map_mem[0] <= write_data_i;
         end

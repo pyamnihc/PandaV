@@ -13,7 +13,7 @@ module prbs15 (
     reg [14:0] lfsr_reg;
     always @(posedge clk_i) begin
         if (!rst_ni) begin
-            lfsr_reg <= 15'h7fff;
+            lfsr_reg <= 'b0;
         end else if (load_prbs_i == 1) begin
             lfsr_reg <= lfsr_init_i;
         end else if (freeze_i == 1) begin
