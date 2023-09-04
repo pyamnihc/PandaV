@@ -34,8 +34,7 @@ documentation:
 # Longer description of how the project works. You can use standard markdown format.
   how_it_works: |
     This is simplified implementation of Karplus-Strong (KS) string synthesis based on papers [Digital Synthesis of Plucked-String and Drum Timbres](https://doi.org/10.2307/3680062) and [Extensions of the Karplus-Strong Plucked-String Algorithm](https://doi.org/10.2307/3680063). 
-     
-     A register map controls and configures the KS synthesis module. The register map is accessed through SPI interface. Synthesized sound samples can be accessed through the I2S Transmitter interface.
+    A register map controls and configures the KS synthesis module. The register map is accessed through SPI interface. Synthesized sound samples can be accessed through the I2S Transmitter interface.
 
     ### SPI Frame
     16-bit framewith CPOL=0, CPHA=0  defined as,
