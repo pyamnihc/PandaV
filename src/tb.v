@@ -230,18 +230,18 @@ module tb();
             #(32*CLK_PERIOD) spi_write(0, 8'h03);
             #(32*CLK_PERIOD) spi_write(0, 8'h00);
             
-            // // load prbs
-            // // prbs_15
-            // #(32*CLK_PERIOD) spi_write(1, 8'h00);
-            // #(32*CLK_PERIOD) spi_write(2, 8'h00);
-            // #(32*CLK_PERIOD) spi_write(2, 8'h80);
-            // #(32*CLK_PERIOD) spi_write(2, 8'h00);
+            // load prbs
+            // prbs_15
+            #(32*CLK_PERIOD) spi_write(1, 8'h00);
+            #(32*CLK_PERIOD) spi_write(2, 8'h00);
+            #(32*CLK_PERIOD) spi_write(2, 8'h80);
+            #(32*CLK_PERIOD) spi_write(2, 8'h00);
 
 
-            // // prbs_7
-            // #(32*CLK_PERIOD) spi_write(3, 8'h00);
-            // #(32*CLK_PERIOD) spi_write(3, 8'h80);
-            // #(32*CLK_PERIOD) spi_write(3, 8'h00);
+            // prbs_7
+            #(32*CLK_PERIOD) spi_write(3, 8'h00);
+            #(32*CLK_PERIOD) spi_write(3, 8'h80);
+            #(32*CLK_PERIOD) spi_write(3, 8'h00);
 
             #(32*CLK_PERIOD) prbs_sample_reg = 0;
             repeat(32) begin
