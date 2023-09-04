@@ -65,6 +65,8 @@ documentation:
 
 # Instructions on how someone could test your project, include things like what buttons do what and how to set the clock if needed
   how_to_test:  |
+  Connect a clock with frequency `f_clk = 256 kHz` and apply a reset cycle to initialize the design, this sets the audio sample rate at `fs = 16 kHz`. Use the spi register map or the ui_in to futher configure the design.
+  The I2S Transmitter needs a I2S Controller/Receiver to receive samples. It is configured for signed 8-bit samples at `sck=256 kHz`.
 
 # A description of what the inputs do (e.g. red button, SPI CLK, SPI MOSI, etc).
   inputs:               
