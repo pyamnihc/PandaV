@@ -35,14 +35,6 @@ module tt_um_ks_pyamnihc (
         else clk_rise_counter <= clk_rise_counter + 1;
     end
     assign clk_r16 = clk_rise_counter[3];
-    
-    reg [3:0] clk_fall_counter;
-    wire clk_f16;
-    always @(negedge clk) begin
-        if (!rst_n) clk_fall_counter <= 'b0;
-        else clk_fall_counter <= clk_fall_counter + 1;
-    end
-    assign clk_f16 = clk_fall_counter[3];
 
     // SPI register map
     wire sck_i;
@@ -201,8 +193,8 @@ module tt_um_ks_pyamnihc (
     end
 
     // i2s tx
-    assign i2s_sck = clk;
-    assign i2s_ws = clk_f16;
+    assign i2s_sck = ~clk;
+    assign i2s_ws = clk_r16;
 
     i2s_tx #(
         .AUDIO_DW(I2S_AUDIO_DW)
