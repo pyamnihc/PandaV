@@ -48,25 +48,7 @@ documentation:
 
     The Register Map has 16 Registers of 8-bits each. It is divided into configuration and status registers,
 
-    Register[7:0] := Configuration Registers
-    Register[11:8] := Status Registers
-
-    Each register is mapped as follows,
-
-    | Register/Bit | 7                  | 6                   | 5             | 4              | 3             | 2                     | 1             | 0              |
-    | ------------ | ------------------ | ------------------- | ------------- | -------------- | ------------- | --------------------- | ------------- | -------------- |
-    | 0            | i2s_noise_sel      | ks_freeze           | freeze_prbs_7 | freeze_prbs_15 |               | ~rst_n_ks_string      | ~rst_n_prbs_7 | ~rst_n_prbs_15 |
-    | 1            | ~lfsr_init_15[7:0] |                     |               |                |               |                       |               |                |
-    | 2            | load_prbs_15       | ~lfsr_init_15[14:8] |               |                |               |                       |               |                |
-    | 3            | load_prbs_7        | ~lfsr_init_7[6:0]   |               |                |               |                       |               |                |
-    | 4            |                    |                     | dynamics_en   | fine_tune_n    | drum_string_n | toggle_pattern_prbs_n | round_en      | pluck          |
-    | 5            | fine_tune_C[7:0]   |                     |               |                |               |                       |               |                |
-    | 6            | dynamics_R[7:0]    |                     |               |                |               |                       |               |                |
-    | 7            | ks_period[7:0]     |                     |               |                |               |                       |               |                |
-    | 9            | 1                  | 1                   | 0             | 0              | 0             | 0                     | 0             | 0              |
-    | 10           | 0                  | 0                   | 0             | 0              | 0             | 0                     | 0             | 1              |
-    | 11           | ui_in[7]           | ui_in[6]            | ui_in[5]      | ui_in[4]       | ui_in[3]      | ui_in[2]              | ui_in[1]      | ui_in[0]       |
-    | 12           |                    |                     |               |                |               |                       |               |                |
+    Complete register map is described in the repository at [https://github.com/pyamnihc/tt04-um-ks-pyamnihc](https://github.com/pyamnihc/tt04-um-ks-pyamnihc).
 
     ### I2S Transmitter
 
@@ -108,6 +90,7 @@ documentation:
     - ws
     - sd 
     - prbs_15
+
 # The following fields are optional
   tag:          "filter, music"      # comma separated list of tags: test, encryption, experiment, clock, animation, utility, industrial, pwm, fpga, alu, microprocessor, risc, riscv, sensor, signal generator, fft, filter, music, bcd, sound, serial, timer, random number generator, calculator, decoder, counter, puzzle, multiplier, game, oscillator,
   external_hw:  ""      # Describe any external hardware needed
