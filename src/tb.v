@@ -56,8 +56,6 @@ module tb();
     initial begin
         finish = 0;
         rst_n = 1;
-        sck = 0;
-        ws = 0;
         #(10*CLK_PERIOD) init_design();
         #(10*CLK_PERIOD) init_spi();
         #(10*CLK_PERIOD) prbs_init();
@@ -68,6 +66,9 @@ module tb();
         init_ks_string();
         set_ks_period(255);
         pluck_ks_string();
+        #(10*CLK_PERIOD) spi_read(8);
+        #(10*CLK_PERIOD) spi_read(9);
+
 
         #(MAX_CLOCKS*CLK_PERIOD) finish = 1;
         // #(32*CLK_PERIOD)    $finish;
@@ -77,13 +78,13 @@ module tb();
     initial begin 
         sd_buffer = 0;
     end
-    always @(posedge sck) begin
-        sd_buffer <= {sd_buffer[I2S_AUDIO_DW-2:0], sd};
+    always @(posedge i2s_sck) begin
+        sd_buffer <= {sd_buffer[I2S_AUDIO_DW-2:0], i2s_sd};
     end
     
     reg wsd[1:0];
-    always @(posedge sck) begin
-        wsd[0] <= ws;
+    always @(posedge i2s_sck) begin
+        wsd[0] <= i2s_ws;
         wsd[1] <= wsd[0];
     end
     
@@ -94,14 +95,14 @@ module tb();
     initial begin
         sample_count = 0;
     end
-    always @(negedge sck) begin
+    always @(negedge i2s_sck) begin
         if (wsp == 1'b1) begin
             sample_count <= sample_count + 1;
-            if (ws == 1'b1) begin
+            if (i2s_ws == 1'b1) begin
                 recv_l_data <= sd_buffer;
 //                $display("recv: 0x%0h", recv_l_data);
 
-            end else if (ws == 1'b0) begin
+            end else if (i2s_ws == 1'b0) begin
                 recv_r_data <= sd_buffer;
 //                $display("recv: 0x%0h", recv_r_data);
             end
@@ -114,14 +115,10 @@ module tb();
         clk_count <= clk_count + 1;
     end
     
-    always #(SCK_PERIOD/2) sck = !sck;
-    always #(WS_PERIOD/2) ws = !ws;
-
     reg sck_i, cs_ni;
     wire sdi_i, sdo_o;
-    reg sck;
-    reg ws;
-    wire sd;
+    wire i2s_sck, i2s_ws;
+    wire i2s_sd;
 
     // wire up the inputs and outputs
     // reg  clk;
@@ -156,9 +153,9 @@ module tb();
     assign uio_in[1] = sdi_i;
     assign sdo_o = uio_out[2];
     assign uio_in[3] = cs_ni;
-    assign uio_in[4] = sck;
-    assign uio_in[5] = ws;
-    assign sd = uio_out[6];
+    assign i2s_sck = uio_out[4];
+    assign i2s_ws = uio_out[5];
+    assign i2s_sd = uio_out[6];
     
     assign uio_oe = 8'b1100_0100;
 
@@ -230,22 +227,22 @@ module tb();
             #(32*CLK_PERIOD) spi_write(0, 8'h03);
             #(32*CLK_PERIOD) spi_write(0, 8'h00);
             
-            // // load prbs
-            // // prbs_15
-            // #(32*CLK_PERIOD) spi_write(1, 8'h00);
-            // #(32*CLK_PERIOD) spi_write(2, 8'h00);
-            // #(32*CLK_PERIOD) spi_write(2, 8'h80);
-            // #(32*CLK_PERIOD) spi_write(2, 8'h00);
+            // load prbs
+            // prbs_15
+            #(32*CLK_PERIOD) spi_write(1, 8'h00);
+            #(32*CLK_PERIOD) spi_write(2, 8'h00);
+            #(32*CLK_PERIOD) spi_write(2, 8'h80);
+            #(32*CLK_PERIOD) spi_write(2, 8'h00);
 
 
-            // // prbs_7
-            // #(32*CLK_PERIOD) spi_write(3, 8'h00);
-            // #(32*CLK_PERIOD) spi_write(3, 8'h80);
-            // #(32*CLK_PERIOD) spi_write(3, 8'h00);
+            // prbs_7
+            #(32*CLK_PERIOD) spi_write(3, 8'h00);
+            #(32*CLK_PERIOD) spi_write(3, 8'h80);
+            #(32*CLK_PERIOD) spi_write(3, 8'h00);
 
             #(32*CLK_PERIOD) prbs_sample_reg = 0;
             repeat(32) begin
-                @(posedge clk) prbs_sample_reg = {prbs_sample_reg[30:0], uio_out[7]};
+                @(posedge i2s_ws) prbs_sample_reg = {prbs_sample_reg[30:0], uio_out[7]};
             end
             $display("prbs sample: %0b", prbs_sample_reg);
         end

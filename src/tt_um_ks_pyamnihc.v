@@ -21,23 +21,20 @@ module tt_um_ks_pyamnihc (
     localparam I2S_AUDIO_DW = 8;
 
     // KS param.
-    localparam KS_MAX_LENGTH = 32;
+    localparam KS_MAX_LENGTH = 36;
     localparam KS_DATA_WIDTH = 8;
     localparam KS_PRBS_WIDTH = 2;
     localparam KS_EXTN_BITS = 4;
     localparam KS_FRAC_BITS = 4;
 
     // clock dividers
-    reg [3:0] clk_div_counter;
-    wire clk_2, clk_4, clk_8, clk_16;
+    reg [3:0] clk_rise_counter;
+    wire clk_r16;
     always @(posedge clk) begin
-        if (!rst_n) clk_div_counter <= 'b0;
-        else clk_div_counter <= clk_div_counter + 1;
+        if (!rst_n) clk_rise_counter <= 'b0;
+        else clk_rise_counter <= clk_rise_counter + 1;
     end
-    assign clk_2 = clk_div_counter[0];
-    assign clk_4 = clk_div_counter[1];
-    assign clk_8 = clk_div_counter[2];
-    assign clk_16 = clk_div_counter[3];
+    assign clk_r16 = clk_rise_counter[3];
 
     // SPI register map
     wire sck_i;
@@ -50,21 +47,26 @@ module tt_um_ks_pyamnihc (
     assign cs_ni = uio_in[3];
     
     // i2s tx
-    wire sck;
-    assign sck = uio_in[4];
-    wire ws;
-    assign ws = uio_in[5];
-    wire sd;
-    assign uio_out[6] = sd;
+    wire i2s_sck_o;
+    assign uio_out[4] = i2s_sck_o;
+    wire i2s_ws_o;
+    assign uio_out[5] = i2s_ws_o;
+    wire i2s_sd_o;
+    assign uio_out[6] = i2s_sd_o;
 
-    assign uio_out[0] = 1'b1;
-    assign uio_out[1] = 1'b1;
-    assign uio_out[3] = 1'b1;
-    assign uio_out[4] = 1'b1;
-    assign uio_out[5] = 1'b1;
+    assign uio_out[0] = 1'b0;
+    assign uio_out[1] = 1'b0;
+    assign uio_out[3] = 1'b0;
     
-    assign uio_oe = 8'b1100_0100;
-    assign uo_out = 8'hff;
+    assign uio_oe = 8'b111_0100;
+    assign uo_out[0] = rst_n;
+    assign uo_out[1] = rst_n_prbs_15;
+    assign uo_out[2] = rst_n_prbs_7;
+    assign uo_out[3] = rst_n_ks_string;
+    assign uo_out[4] = freeze_prbs_7;
+    assign uo_out[5] = freeze_prbs_15;
+    assign uo_out[6] = i2s_noise_sel;
+    assign uo_out[7] = pluck;
 
     // prbs tx
     assign uio_out[7] = prbs_15;
@@ -91,7 +93,9 @@ module tt_um_ks_pyamnihc (
     assign status_arr[0] = 8'hC0;
     assign status_arr[1] = 8'h01;
     assign status_arr[2] = ui_in;
-
+    assign status_arr[3] = uio_in;
+    
+    // SPI peripheral
     wire [SPI_ADDR_WIDTH-1:0] spi_addr;
     wire [SPI_DATA_WIDTH-1:0] spi_write_data, spi_read_data;
     wire spi_write_en, spi_read_en;
@@ -111,6 +115,7 @@ module tt_um_ks_pyamnihc (
         .read_en_o(spi_read_en)
     );
 
+    // Register map
     register_map #( .ADDR_WIDTH(SPI_ADDR_WIDTH),
                     .DATA_WIDTH(SPI_DATA_WIDTH),
                     .NUM_CONFIG_REG(SPI_NUM_CONFIG_REG),
@@ -127,6 +132,7 @@ module tt_um_ks_pyamnihc (
         .status_bus_i(status_bus_i)
     );
     
+    // prbs15
     wire rst_n_prbs_15;
     assign rst_n_prbs_15 = ~config_arr[0][0] && ~ui_in[0];
     wire [14:0] lfsr_init_15;
@@ -139,7 +145,7 @@ module tt_um_ks_pyamnihc (
     wire [14:0] prbs_frame_15;
 
     prbs15 prbs15_0 (
-        .clk_i(clk_16),
+        .clk_i(clk_r16),
         .rst_ni(rst_n && rst_n_prbs_15),
         .lfsr_init_i(lfsr_init_15),
         .load_prbs_i(load_prbs_15),
@@ -148,6 +154,7 @@ module tt_um_ks_pyamnihc (
         .prbs_frame_o(prbs_frame_15)
     );
 
+    // prbs7
     wire rst_n_prbs_7;
     assign rst_n_prbs_7 = ~config_arr[0][1] && ~ui_in[0];
     wire [6:0] lfsr_init_7;
@@ -160,7 +167,7 @@ module tt_um_ks_pyamnihc (
     wire [6:0] prbs_frame_7;
 
     prbs7 prbs7_0 (
-        .clk_i(clk_16),
+        .clk_i(clk_r16),
         .rst_ni(rst_n && rst_n_prbs_7),
         .lfsr_init_i(lfsr_init_7),
         .load_prbs_i(load_prbs_7),
@@ -169,6 +176,7 @@ module tt_um_ks_pyamnihc (
         .prbs_frame_o(prbs_frame_7)
     );
     
+    // i2s sample select
     wire i2s_noise_sel = config_arr[0][7] || ui_in[4];
     wire [I2S_AUDIO_DW-1:0] l_data, r_data; 
     assign l_data = i2s_noise_sel ? prbs_frame_15[I2S_AUDIO_DW-1:0] : ks_sample;
@@ -177,39 +185,32 @@ module tt_um_ks_pyamnihc (
     reg [I2S_AUDIO_DW-1:0] l_data_reg, r_data_reg; 
     wire l_load_en, r_load_en;
     
-    reg l_load_reg [1:0];
-    reg r_load_reg [1:0];
-    always @(posedge clk) begin
-        if (!rst_n) begin
-            l_load_reg[0] <= 'b0; l_load_reg[1] <= 'b0;
-            r_load_reg[0] <= 'b0; r_load_reg[1] <= 'b0;
-        end else begin
-            l_load_reg[0] <= l_load_en; l_load_reg[1] <= l_load_reg[0];
-            r_load_reg[0] <= r_load_en; r_load_reg[1] <= r_load_reg[0];
-        end
+    always @(negedge i2s_sck_o) begin
+        if (l_load_en == 1) l_data_reg <= l_data;
+        else l_data_reg <= l_data_reg;
+        if (r_load_en == 1) r_data_reg <= r_data;
+        else r_data_reg <= r_data_reg;
     end
-    wire l_load_pulse;
-    assign l_load_pulse = l_load_reg[0] && !l_load_reg[1];
-    wire r_load_pulse;
-    assign r_load_pulse = r_load_reg[0] && !r_load_reg[1];
 
-    always @(posedge clk) begin
-        if (l_load_pulse) l_data_reg <= l_data;
-        if (r_load_pulse) r_data_reg <= r_data;
-    end
+    // i2s tx
+    assign i2s_sck_o = ~clk;
+    assign i2s_ws_o = clk_r16;
 
     i2s_tx #(
         .AUDIO_DW(I2S_AUDIO_DW)
     ) i2s_tx_0 (
-        .sck_i(sck),
-        .ws_i(ws),
-        .sd_o(sd),
+        .sck_i(i2s_sck_o),
+        .ws_i(i2s_ws_o),
+        .sd_o(i2s_sd_o),
         .l_data_i(l_data_reg),
         .r_data_i(r_data_reg),
         .l_load_en_o(l_load_en),
         .r_load_en_o(r_load_en)
     );
 
+    // ks string
+    wire ks_clk;
+    assign ks_clk = clk_r16;
     wire rst_n_ks_string;
     assign rst_n_ks_string = ~config_arr[0][2] && ~ui_in[5];
     wire ks_freeze;
@@ -242,7 +243,7 @@ module tt_um_ks_pyamnihc (
         .EXTN_BITS(KS_EXTN_BITS),
         .FRAC_BITS(KS_FRAC_BITS)
     ) ks_string_0 (
-        .clk_i(clk_16),
+        .clk_i(ks_clk),
         .rst_ni(rst_n && rst_n_ks_string),
         .freeze_i(ks_freeze),
         .pluck_i(pluck),

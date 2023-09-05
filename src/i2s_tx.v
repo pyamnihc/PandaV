@@ -16,8 +16,8 @@ module i2s_tx #(
         wsd[0] <= ws_i;
         wsd[1] <= wsd[0];
     end
-    assign l_load_en_o = wsd[0] & !ws_i;
-    assign r_load_en_o = !wsd[0] & ws_i;
+    assign l_load_en_o = wsd[1] & !wsd[0];
+    assign r_load_en_o = !wsd[1] & wsd[0];
     
     wire wsp;
     assign wsp = wsd[0] ^ wsd[1];
