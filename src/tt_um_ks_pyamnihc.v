@@ -57,14 +57,21 @@ module tt_um_ks_pyamnihc (
     wire sd;
     assign uio_out[6] = sd;
 
-    assign uio_out[0] = 1'b1;
-    assign uio_out[1] = 1'b1;
-    assign uio_out[3] = 1'b1;
-    assign uio_out[4] = 1'b1;
-    assign uio_out[5] = 1'b1;
+    assign uio_out[0] = 1'b0;
+    assign uio_out[1] = 1'b0;
+    assign uio_out[3] = 1'b0;
+    assign uio_out[4] = 1'b0;
+    assign uio_out[5] = 1'b0;
     
     assign uio_oe = 8'b1100_0100;
-    assign uo_out = 8'hff;
+    assign uo_out[0] = rst_n;
+    assign uo_out[1] = rst_n_prbs_15;
+    assign uo_out[2] = rst_n_prbs_7;
+    assign uo_out[3] = rst_n_ks_string;
+    assign uo_out[4] = freeze_prbs_7;
+    assign uo_out[5] = freeze_prbs_15;
+    assign uo_out[6] = i2s_noise_sel;
+    assign uo_out[7] = pluck;
 
     // prbs tx
     assign uio_out[7] = prbs_15;
