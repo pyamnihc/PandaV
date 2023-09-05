@@ -45,34 +45,34 @@ Connect a clock with frequency `f_clk = 256 kHz` and apply a reset cycle to init
 
 #### A description of what the inputs do (e.g. red button, SPI CLK, SPI MOSI, etc).
   inputs:               
-    - ~rst_n_prbs_15, ~rst_n_prbs_7
-    - load_prbs_15, load_prbs_7 
-    - freeze_prbs_15
-    - freeze_prbs_7
-    - i2s_noise_sel
-    - ~rst_n_ks_string
-    - pluck
-    - NOT CONNECTED
+  - ~rst_n_prbs_15, ~rst_n_prbs_7
+  - load_prbs_15, load_prbs_7 
+  - freeze_prbs_15
+  - freeze_prbs_7
+  - i2s_noise_sel
+  - ~rst_n_ks_string
+  - pluck
+  - NOT CONNECTED
 #### A description of what the outputs do (e.g. status LED, SPI MISO, etc)
   outputs:
-    - segment a: rstn_n
-    - segment b: rst_n_prbs_15
-    - segment c: rst_n_prbs_7
-    - segment d: rst_n_ks_string
-    - segment e: freeze_prbs_15
-    - segment f: freeze_prbs_15
-    - segment g: i2s_noise_sel
-    - dot: pluck
+  - segment a: rstn_n
+  - segment b: rst_n_prbs_15
+  - segment c: rst_n_prbs_7
+  - segment d: rst_n_ks_string
+  - segment e: freeze_prbs_15
+  - segment f: freeze_prbs_15
+  - segment g: i2s_noise_sel
+  - dot: pluck
 #### A description of what the bidirectional I/O pins do (e.g. I2C SDA, I2C SCL, etc)
   bidirectional:
-    - sck_i
-    - sdi_i
-    - sdo_o
-    - cs_ni
-    - i2s_sck_o
-    - i2s_ws_o
-    - i2s_sd_o 
-    - prbs_15
+  - sck_i
+  - sdi_i
+  - sdo_o
+  - cs_ni
+  - i2s_sck_o
+  - i2s_ws_o
+  - i2s_sd_o 
+  - prbs_15
 
 # What is Tiny Tapeout?
 
