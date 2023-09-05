@@ -7,10 +7,13 @@ A register map controls and configures the KS synthesis module. This register ma
 
 ### SPI Frame
 SPI Mode: CPOL = 0, CPHA = 1
-16-bit SPI frame is defined as,
 
-| Read=1/Write=0 | Address[6:0] | Data[7:0] |
+The 16-bit SPI frame is defined as,
+
+|     |     |     |
 |:---:|:---:|:---:|
+| Read=1/Write=0 | Address[6:0] | Data[7:0] |
+
 
 ### Register Map
 The Register Map has 16 Registers of 8-bits each. It is divided into configuration and status registers,
