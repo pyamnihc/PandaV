@@ -47,12 +47,12 @@ module tt_um_ks_pyamnihc (
     assign cs_ni = uio_in[3];
     
     // i2s tx
-    wire i2s_sck;
-    assign uio_out[4] = i2s_sck;
-    wire i2s_ws;
-    assign uio_out[5] = i2s_ws;
-    wire i2s_sd;
-    assign uio_out[6] = i2s_sd;
+    wire i2s_sck_o;
+    assign uio_out[4] = i2s_sck_o;
+    wire i2s_ws_o;
+    assign uio_out[5] = i2s_ws_o;
+    wire i2s_sd_o;
+    assign uio_out[6] = i2s_sd_o;
 
     assign uio_out[0] = 1'b0;
     assign uio_out[1] = 1'b0;
@@ -185,7 +185,7 @@ module tt_um_ks_pyamnihc (
     reg [I2S_AUDIO_DW-1:0] l_data_reg, r_data_reg; 
     wire l_load_en, r_load_en;
     
-    always @(negedge i2s_sck) begin
+    always @(negedge i2s_sck_o) begin
         if (l_load_en == 1) l_data_reg <= l_data;
         else l_data_reg <= l_data_reg;
         if (r_load_en == 1) r_data_reg <= r_data;
@@ -193,15 +193,15 @@ module tt_um_ks_pyamnihc (
     end
 
     // i2s tx
-    assign i2s_sck = ~clk;
-    assign i2s_ws = clk_r16;
+    assign i2s_sck_o = ~clk;
+    assign i2s_ws_o = clk_r16;
 
     i2s_tx #(
         .AUDIO_DW(I2S_AUDIO_DW)
     ) i2s_tx_0 (
-        .sck_i(i2s_sck),
-        .ws_i(i2s_ws),
-        .sd_o(i2s_sd),
+        .sck_i(i2s_sck_o),
+        .ws_i(i2s_ws_o),
+        .sd_o(i2s_sd_o),
         .l_data_i(l_data_reg),
         .r_data_i(r_data_reg),
         .l_load_en_o(l_load_en),
