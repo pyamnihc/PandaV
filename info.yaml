@@ -49,7 +49,7 @@ documentation:
     Complete register map is described in the repository at [https://github.com/pyamnihc/tt04-um-ks-pyamnihc](https://github.com/pyamnihc/tt04-um-ks-pyamnihc).
 
     ### I2S Transmitter
-    The 8-bit signed sound samples can be read out at `f_sck=256 kHz` through this interface.
+    The 8-bit signed sound samples can be read out at `f_sck = 256 kHz` through this interface.
 
 
 # Instructions on how someone could test your project, include things like what buttons do what and how to set the clock if needed
