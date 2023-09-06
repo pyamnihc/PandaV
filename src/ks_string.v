@@ -16,6 +16,7 @@ module ks_string #(
     input signed [DATA_WIDTH-1:0] fine_tune_C_i,
     input dynamics_en_i,
     input [DATA_WIDTH-1:0] dynamics_R_i,
+    input clip_noise_i,
     input [PRBS_WIDTH-1:0] prbs_data_i,
     input [DATA_WIDTH-1:0] period_i,
     output [DATA_WIDTH-1:0] ks_sample_o
@@ -47,15 +48,24 @@ assign pluck_rise_pulse = !pluck_shift_reg[3] && pluck_shift_reg[2];
 reg signed [EXTENDED_WIDTH+FRAC_BITS-1:0] noise_reg;
 reg [$clog2(MAX_LENGTH)-1:0] prbs_burst_counter;
 reg prbs_burst_en;
-wire signed [EXTENDED_WIDTH+FRAC_BITS-1:0] noise_burst;
-// three level noise, 0 MID HIGH
-assign noise_burst = prbs_data_i[1]   ? (prbs_data_i[0]   ? ({{(EXTN_BITS+1){1'b0}}, {((DATA_WIDTH+FRAC_BITS)-1){1'b1}}}) 
-                                                            : ({{(EXTN_BITS+1){1'b1}}, {((DATA_WIDTH+FRAC_BITS)-1){1'b0}}})) 
-                                        : ({(EXTENDED_WIDTH+FRAC_BITS){1'b0}});
 
-// dynamics filter
+reg [DATA_WIDTH+FRAC_BITS-1:0] noise_sample_reg;
+always @(posedge clk_i) begin
+    if (!rst_ni) noise_sample_reg <= 'b0;
+    else noise_sample_reg <=  {noise_sample_reg[DATA_WIDTH+FRAC_BITS-2:0], ^prbs_data_i};
+end
+
+// peak-peak clipped noise
+wire signed [EXTENDED_WIDTH+FRAC_BITS-1:0] clip_noise_sample;
+assign clip_noise_sample = (^prbs_data_i) ? ({{(EXTN_BITS+1){1'b0}}, {((DATA_WIDTH+FRAC_BITS)-1){1'b1}}}) 
+                                                            : ({{(EXTN_BITS+1){1'b1}}, {((DATA_WIDTH+FRAC_BITS)-1){1'b0}}});
+
+wire signed [EXTENDED_WIDTH+FRAC_BITS-1:0] noise_sample;
+assign noise_sample = clip_noise_i ? clip_noise_sample : {{EXTN_BITS{noise_sample_reg[DATA_WIDTH+FRAC_BITS-1]}}, noise_sample_reg};
+
+// noise dynamics filter
 wire signed [EXTENDED_WIDTH+FRAC_BITS-1:0] yd_0;
-assign yd_0 = noise_burst_dyn;
+assign yd_0 = noise_sample_dyn;
 reg signed [EXTENDED_WIDTH+FRAC_BITS-1:0] yd_1;
 
 always @(posedge clk_i) begin
@@ -63,14 +73,14 @@ always @(posedge clk_i) begin
     else yd_1 <= yd_0;
 end
 
-wire signed [EXTENDED_WIDTH+FRAC_BITS-1:0] R_diff, noise_burst_dyn;
+wire signed [EXTENDED_WIDTH+FRAC_BITS-1:0] R_diff, noise_sample_dyn;
 wire signed [DATA_WIDTH+EXTENDED_WIDTH+FRAC_BITS-1:0] scaled_R_diff;
-assign R_diff = yd_1 - noise_burst;
+assign R_diff = yd_1 - noise_sample;
 assign scaled_R_diff = (dynamics_R_i * R_diff) >>> DATA_WIDTH;
-assign noise_burst_dyn = noise_burst + scaled_R_diff;
+assign noise_sample_dyn = noise_sample + scaled_R_diff;
 
-wire signed [EXTENDED_WIDTH+FRAC_BITS-1:0] noise_burst_w;
-assign noise_burst_w = dynamics_en_i ? noise_burst_dyn : noise_burst;
+wire signed [EXTENDED_WIDTH+FRAC_BITS-1:0] noise_sample_w;
+assign noise_sample_w = dynamics_en_i ? noise_sample_dyn : noise_sample;
 
 reg toggle_bit;
 always @(posedge clk_i) begin
@@ -94,7 +104,7 @@ always @(posedge clk_i) begin
         end else if (prbs_burst_en == 1'b1) begin
             if (prbs_burst_counter < clamped_period) begin
                 prbs_burst_counter <= prbs_burst_counter + 1;
-                noise_reg <= toggle_pattern_prbs_ni ? toggle_clamp : noise_burst_w;
+                noise_reg <= toggle_pattern_prbs_ni ? toggle_clamp : noise_sample_w;
                 prbs_burst_en <= 1'b1;
             end else begin
                 prbs_burst_counter <= 'b0;

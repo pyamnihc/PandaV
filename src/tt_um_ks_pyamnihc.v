@@ -231,6 +231,10 @@ module tt_um_ks_pyamnihc (
     assign fine_tune_C = config_arr[5];
     wire [KS_DATA_WIDTH-1:0] dynamics_R;
     assign dynamics_R = config_arr[6];
+    wire clip_noise;
+    assign clip_noise = config_arr[4][6];
+    wire [KS_PRBS_WIDTH-1:0] prbs_data;
+    assign prbs_data = {prbs_15, prbs_7};
     wire [KS_DATA_WIDTH-1:0] ks_period;
     assign ks_period = config_arr[7];
 
@@ -254,7 +258,8 @@ module tt_um_ks_pyamnihc (
         .fine_tune_C_i(fine_tune_C),
         .dynamics_en_i(dynamics_en),
         .dynamics_R_i(dynamics_R),
-        .prbs_data_i({prbs_7, prbs_15}),
+        .clip_noise_i(clip_noise),
+        .prbs_data_i(prbs_data),
         .period_i(ks_period),
         .ks_sample_o(ks_sample)
     );
