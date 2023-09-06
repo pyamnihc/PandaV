@@ -138,24 +138,6 @@ assign strong_filter_w = drum_string_ni ? strong_drum_avg : strong_string_avg;
 wire signed [EXTENDED_WIDTH+FRAC_BITS-1:0] ks_sample_w;
 assign ks_sample_w = noise_reg + strong_filter_w + (round_en_i ? (1 << (FRAC_BITS-1)) : 0);                        
 
-// overflow detect
-wire ks_sign_bit;
-assign ks_sign_bit = ks_sample_w[EXTENDED_WIDTH+FRAC_BITS-1];
-wire ks_data_msb;
-assign ks_data_msb = ks_sample_w[DATA_WIDTH+FRAC_BITS-1];
-
-wire ks_ovf;
-assign ks_ovf = ks_sign_bit ^ ks_data_msb;
-
-wire [EXTENDED_WIDTH+FRAC_BITS-1:0] ks_clamped_val;
-assign ks_clamped_val = {{EXTN_BITS{ks_sign_bit}}, {ks_sign_bit, {DATA_WIDTH-1{ks_data_msb}}}, {FRAC_BITS{ks_data_msb}}};
-
-wire signed [EXTENDED_WIDTH+FRAC_BITS-1:0] ks_sample_clamped_w;
-assign ks_sample_clamped_w = ks_ovf ? ks_clamped_val : ks_sample_w;
-
-wire [DATA_WIDTH-1:0] ks_sample;
-assign ks_sample = ks_sample_clamped_w[DATA_WIDTH+FRAC_BITS-1:FRAC_BITS];
-
 reg signed [EXTENDED_WIDTH+FRAC_BITS-1:0] strong_filter_1;
 always @(posedge clk_i) begin
     if (!rst_ni) strong_filter_1 <= 'b0;
@@ -179,28 +161,28 @@ end
 wire signed [EXTENDED_WIDTH+FRAC_BITS-1:0] ks_sample_ft_w;
 assign ks_sample_ft_w = noise_reg + y_0 + (round_en_i ? (1 << (FRAC_BITS-1)) : 0);
 
+wire [EXTENDED_WIDTH+FRAC_BITS-1:0] ks_loop_sample_w;
+assign ks_loop_sample_w = fine_tune_en_i ? ks_sample_ft_w : ks_sample_w;
+
 // overflow detect
-wire ft_sign_bit;
-assign ft_sign_bit = ks_sample_ft_w[EXTENDED_WIDTH+FRAC_BITS-1];
-wire ft_data_msb;
-assign ft_data_msb = ks_sample_ft_w[DATA_WIDTH+FRAC_BITS-1];
+wire ks_sign_bit;
+assign ks_sign_bit = ks_loop_sample_w[EXTENDED_WIDTH+FRAC_BITS-1];
+wire ks_data_msb;
+assign ks_data_msb = ks_loop_sample_w[DATA_WIDTH+FRAC_BITS-1];
 
-wire ft_ovf;
-assign ft_ovf = ft_sign_bit ^ ft_data_msb;
+wire ks_ovf;
+assign ks_ovf = ks_sign_bit ^ ks_data_msb;
 
-wire [EXTENDED_WIDTH+FRAC_BITS-1:0] ft_clamped_val;
-assign ft_clamped_val = {{EXTN_BITS{ft_sign_bit}}, {ft_sign_bit, {DATA_WIDTH-1{ft_data_msb}}}, {FRAC_BITS{ft_data_msb}}};
+wire [EXTENDED_WIDTH+FRAC_BITS-1:0] ks_clamped_val;
+assign ks_clamped_val = {{EXTN_BITS{ks_sign_bit}}, {ks_sign_bit, {DATA_WIDTH-1{ks_data_msb}}}, {FRAC_BITS{ks_data_msb}}};
 
-wire signed [EXTENDED_WIDTH+FRAC_BITS-1:0] ks_sample_ft_clamped_w;
-assign ks_sample_ft_clamped_w = ft_ovf ? ft_clamped_val : ks_sample_ft_w;
+wire signed [EXTENDED_WIDTH+FRAC_BITS-1:0] ks_loop_clamped_w;
+assign ks_loop_clamped_w = ks_ovf ? ks_clamped_val : ks_loop_sample_w;
 
-wire [DATA_WIDTH-1:0] ks_sample_ft;
-assign ks_sample_ft = ks_sample_ft_clamped_w[DATA_WIDTH+FRAC_BITS-1:FRAC_BITS];
+wire [DATA_WIDTH-1:0] ks_loop_sample_o;
+assign ks_loop_sample_o = ks_loop_clamped_w[DATA_WIDTH+FRAC_BITS-1:FRAC_BITS];
 
-wire [DATA_WIDTH-1:0] ks_sample_loop_o;
-assign ks_sample_loop_o = fine_tune_en_i ? ks_sample_ft : ks_sample;
-
-assign ks_sample_o = ks_sample_loop_o;
+assign ks_sample_o = ks_loop_sample_o;
 
 // wavetable
 reg [DATA_WIDTH-1:0] string_reg [MAX_LENGTH-1:0];
@@ -212,7 +194,7 @@ always @(posedge clk_i) begin
     end else if (freeze_i) begin
         string_reg[0] <= string_reg[0];
     end else begin
-        string_reg[0] <= ks_sample_loop_o;
+        string_reg[0] <= ks_loop_sample_o;
     end
 end
 
