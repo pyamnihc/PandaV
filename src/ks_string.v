@@ -49,10 +49,10 @@ reg signed [EXTENDED_WIDTH+FRAC_BITS-1:0] noise_reg;
 reg [$clog2(MAX_LENGTH)-1:0] prbs_burst_counter;
 reg prbs_burst_en;
 
-reg [DATA_WIDTH+FRAC_BITS-1:0] noise_sample_reg;
+reg [DATA_WIDTH-1:0] noise_sample_reg;
 always @(posedge clk_i) begin
     if (!rst_ni) noise_sample_reg <= 'b0;
-    else noise_sample_reg <=  {noise_sample_reg[DATA_WIDTH+FRAC_BITS-2:0], ^prbs_data_i};
+    else noise_sample_reg <=  {noise_sample_reg[DATA_WIDTH-2:0], ^prbs_data_i};
 end
 
 // peak-peak clipped noise
@@ -61,7 +61,7 @@ assign clip_noise_sample = (^prbs_data_i) ? ({{(EXTN_BITS+1){1'b0}}, {((DATA_WID
                                                             : ({{(EXTN_BITS+1){1'b1}}, {((DATA_WIDTH+FRAC_BITS)-1){1'b0}}});
 
 wire signed [EXTENDED_WIDTH+FRAC_BITS-1:0] noise_sample;
-assign noise_sample = clip_noise_i ? clip_noise_sample : {{EXTN_BITS{noise_sample_reg[DATA_WIDTH+FRAC_BITS-1]}}, noise_sample_reg};
+assign noise_sample = clip_noise_i ? clip_noise_sample : {{EXTN_BITS{noise_sample_reg[DATA_WIDTH-1]}}, noise_sample_reg, {FRAC_BITS{1'b0}}};
 
 // noise dynamics filter
 wire signed [EXTENDED_WIDTH+FRAC_BITS-1:0] yd_0;
