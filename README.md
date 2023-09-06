@@ -30,11 +30,11 @@ Each register is mapped as follows,
 | 0            | i2s_noise_sel      | ks_freeze           | freeze_prbs_7 | freeze_prbs_15 |               | ~rst_n_ks_string      | ~rst_n_prbs_7 | ~rst_n_prbs_15 |
 | 1            | ~lfsr_init_15[7:0] |                     |               |                |               |                       |               |                |
 | 2            | load_prbs_15       | ~lfsr_init_15[14:8] |               |                |               |                       |               |                |
-| 3            | load_prbs_7        | ~lfsr_init_7[6:0]   |               |                |               |                       |               |                |
+| 3            | load_prbs_7        | lfsr_init_7[6:0]    |               |                |               |                       |               |                |
 | 4            |                    | clip_noise          | dynamics_en   | fine_tune_n    | drum_string_n | toggle_pattern_prbs_n | round_en      | pluck          |
 | 5            | fine_tune_C[7:0]   |                     |               |                |               |                       |               |                |
 | 6            | dynamics_R[7:0]    |                     |               |                |               |                       |               |                |
-| 7            | ~ks_period[7:0]     |                     |               |                |               |                       |               |                |
+| 7            | ~ks_period[7:0]    |                     |               |                |               |                       |               |                |
 | 9            | 1                  | 1                   | 0             | 0              | 0             | 0                     | 0             | 0              |
 | 10           | 0                  | 0                   | 0             | 0              | 0             | 0                     | 0             | 1              |
 | 11           | ui_in[7]           | ui_in[6]            | ui_in[5]      | ui_in[4]       | ui_in[3]      | ui_in[2]              | ui_in[1]      | ui_in[0]       |

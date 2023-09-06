@@ -91,6 +91,9 @@ end
 wire [EXTENDED_WIDTH+FRAC_BITS-1:0] toggle_clamp;
 assign toggle_clamp = {{EXTN_BITS{toggle_bit}}, {toggle_bit, {DATA_WIDTH-1{~toggle_bit}}}, {FRAC_BITS{~toggle_bit}}};
 
+wire [EXTENDED_WIDTH+FRAC_BITS-1:0] noise_mux_sample;
+assign noise_mux_sample = toggle_pattern_prbs_ni ? toggle_clamp : noise_sample_w;
+
 always @(posedge clk_i) begin
     if (!rst_ni) begin
         prbs_burst_counter <= 'b0;
@@ -99,12 +102,12 @@ always @(posedge clk_i) begin
     end else begin
         if (pluck_rise_pulse == 1'b1) begin
             prbs_burst_counter <= 'b0;
-            noise_reg <= prbs_data_i;
+            noise_reg <= noise_mux_sample;
             prbs_burst_en <= 'b1;
         end else if (prbs_burst_en == 1'b1) begin
             if (prbs_burst_counter < clamped_period) begin
                 prbs_burst_counter <= prbs_burst_counter + 1;
-                noise_reg <= toggle_pattern_prbs_ni ? toggle_clamp : noise_sample_w;
+                noise_reg <= noise_mux_sample;
                 prbs_burst_en <= 1'b1;
             end else begin
                 prbs_burst_counter <= 'b0;

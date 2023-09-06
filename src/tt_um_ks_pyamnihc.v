@@ -158,7 +158,7 @@ module tt_um_ks_pyamnihc (
     wire rst_n_prbs_7;
     assign rst_n_prbs_7 = ~config_arr[0][1] && ~ui_in[0];
     wire [6:0] lfsr_init_7;
-    assign lfsr_init_7 = ~config_arr[3][6:0];
+    assign lfsr_init_7 = config_arr[3][6:0];
     wire load_prbs_7;
     assign load_prbs_7 = config_arr[3][7] || ui_in[1];
     wire freeze_prbs_7;
