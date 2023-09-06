@@ -31,7 +31,7 @@ Each register is mapped as follows,
 | 1            | ~lfsr_init_15[7:0] |                     |               |                |               |                       |               |                |
 | 2            | load_prbs_15       | ~lfsr_init_15[14:8] |               |                |               |                       |               |                |
 | 3            | load_prbs_7        | ~lfsr_init_7[6:0]   |               |                |               |                       |               |                |
-| 4            |                    |                     | dynamics_en   | fine_tune_n    | drum_string_n | toggle_pattern_prbs_n | round_en      | pluck          |
+| 4            |                    | clip_noise          | dynamics_en   | fine_tune_n    | drum_string_n | toggle_pattern_prbs_n | round_en      | pluck          |
 | 5            | fine_tune_C[7:0]   |                     |               |                |               |                       |               |                |
 | 6            | dynamics_R[7:0]    |                     |               |                |               |                       |               |                |
 | 7            | ks_period[7:0]     |                     |               |                |               |                       |               |                |
