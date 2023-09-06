@@ -34,7 +34,7 @@ Each register is mapped as follows,
 | 4            |                    | clip_noise          | dynamics_en   | fine_tune_n    | drum_string_n | toggle_pattern_prbs_n | round_en      | pluck          |
 | 5            | fine_tune_C[7:0]   |                     |               |                |               |                       |               |                |
 | 6            | dynamics_R[7:0]    |                     |               |                |               |                       |               |                |
-| 7            | ks_period[7:0]     |                     |               |                |               |                       |               |                |
+| 7            | ~ks_period[7:0]     |                     |               |                |               |                       |               |                |
 | 9            | 1                  | 1                   | 0             | 0              | 0             | 0                     | 0             | 0              |
 | 10           | 0                  | 0                   | 0             | 0              | 0             | 0                     | 0             | 1              |
 | 11           | ui_in[7]           | ui_in[6]            | ui_in[5]      | ui_in[4]       | ui_in[3]      | ui_in[2]              | ui_in[1]      | ui_in[0]       |

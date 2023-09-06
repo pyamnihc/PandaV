@@ -58,7 +58,7 @@ module tt_um_ks_pyamnihc (
     assign uio_out[1] = 1'b0;
     assign uio_out[3] = 1'b0;
     
-    assign uio_oe = 8'b111_0100;
+    assign uio_oe = 8'b1111_0100;
     assign uo_out[0] = rst_n;
     assign uo_out[1] = rst_n_prbs_15;
     assign uo_out[2] = rst_n_prbs_7;
@@ -236,7 +236,7 @@ module tt_um_ks_pyamnihc (
     wire [KS_PRBS_WIDTH-1:0] prbs_data;
     assign prbs_data = {prbs_15, prbs_7};
     wire [KS_DATA_WIDTH-1:0] ks_period;
-    assign ks_period = config_arr[7];
+    assign ks_period = ~config_arr[7];
 
     wire [KS_DATA_WIDTH-1:0] ks_sample;
 

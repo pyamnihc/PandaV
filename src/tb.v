@@ -63,9 +63,9 @@ module tb();
         $display("regmap reset val 0x%0h", spi_read_data);
         // test_immediate_write_read();
         // test_all_write_then_all_read();
-        init_ks_string();
-        set_ks_period(255);
-        pluck_ks_string();
+        #(10*CLK_PERIOD) init_ks_string();
+        #(10*CLK_PERIOD) set_ks_period(32);
+        #(10*CLK_PERIOD) pluck_ks_string();
         #(10*CLK_PERIOD) spi_read(8);
         #(10*CLK_PERIOD) spi_read(9);
 
@@ -342,7 +342,7 @@ module tb();
         input [KS_DATA_WIDTH-1:0] ks_period
     );
         begin
-            #(32*CLK_PERIOD) spi_write(7, ks_period);
+            #(32*CLK_PERIOD) spi_write(7, ~ks_period);
         end
     endtask
     
