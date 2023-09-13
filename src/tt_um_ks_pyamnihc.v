@@ -122,7 +122,7 @@ module tt_um_ks_pyamnihc (
                     .NUM_STATUS_REG(SPI_NUM_STATUS_REG)
     ) register_map_0 (
         .clk_i(clk),
-        .rst_n(rst_n),
+        .rst_ni(rst_n),
         .addr_i(spi_addr),
         .write_data_i(spi_write_data),
         .write_en_i(spi_write_en),
